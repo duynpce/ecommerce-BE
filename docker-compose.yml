@@ -24,14 +24,15 @@ services:
 
   mongo:
     image: 'mongo:8.0'
+    command: mongod --port 27018
     environment:
       - MONGO_INITDB_DATABASE=product_db
     ports:
-      - '27017:27017'
+      - '27018:27018'
     volumes:
       - mongo-data:/data/db
     healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      test: [ "CMD", "mongosh", "--port", "27018", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -171,6 +172,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=secret
       - JWT_ACCESS_SECRET=bXktYWNjZXNzLXNlY3JldC1rZXktZm9yLXNob3BwaW5nLWFwcC0yNTY=
       - AUTH_SERVICE_URL=http://auth-service:8084
+      - USER_SERVICE_URL=http://user-service:8081
     ports:
       - "8083:8083"
     depends_on:
@@ -194,7 +196,7 @@ services:
     container_name: product-service
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/product_db
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27018/product_db
       - GCP_BUCKET_NAME=my-product-img
       - GCP_CONFIG_PATH=/run/secrets/gcp-key.json
       - JWT_ACCESS_SECRET=bXktYWNjZXNzLXNlY3JldC1rZXktZm9yLXNob3BwaW5nLWFwcC0yNTY=
