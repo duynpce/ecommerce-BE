@@ -51,7 +51,9 @@ public class SecurityConfig {
                                  "/api/v1/reports/**",
                                 "/api/v1/auth/*/me",
                                 "/api/v1/users/accounts/report",
-                                "/api/v1/tickets/"
+                                "/api/v1/tickets",
+                                "/api/v1/products",
+                                "/api/v1/product/transactions"
                         )
                         .authenticated()
 

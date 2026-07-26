@@ -1,4 +1,4 @@
-package org.example.productservice.infrastructure.web.dto;
+package org.example.productservice.infrastructure.web.dto.product;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.example.productservice.domain.constant.ProductCategory;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ import java.util.UUID;
 public class ProductResponse {
     private UUID id;
     private UUID contributorId;
-    private String url;
+    private List<String> imgUrls;
     private String name;
     private BigDecimal price;
     private Integer quantity;

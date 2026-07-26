@@ -1,4 +1,4 @@
-package org.example.productservice.infrastructure.web.dto;
+package org.example.productservice.infrastructure.web.dto.transaction;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

@@ -1,4 +1,4 @@
-package org.example.productservice.infrastructure.web.dto;
+package org.example.productservice.infrastructure.web.dto.transaction;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

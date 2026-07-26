@@ -18,7 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TransactionEntity {
+public class TransactionEntity extends BaseEntity {
 
     @Id
     @Builder.Default
@@ -44,9 +44,4 @@ public class TransactionEntity {
     @Builder.Default
     private TransactionStatus status = TransactionStatus.PENDING;
 
-    @CreatedDate
-    private Instant createdAt;
-
-    @LastModifiedDate
-    private Instant updatedAt;
 }

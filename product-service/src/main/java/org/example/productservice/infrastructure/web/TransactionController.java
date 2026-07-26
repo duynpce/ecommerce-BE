@@ -11,6 +11,10 @@ import org.example.productservice.application.mapper.TransactionMapper;
 import org.example.productservice.application.usecase.TransactionUseCase;
 import org.example.productservice.domain.model.Transaction;
 import org.example.productservice.infrastructure.web.dto.*;
+import org.example.productservice.infrastructure.web.dto.transaction.CreateTransactionRequest;
+import org.example.productservice.infrastructure.web.dto.transaction.TransactionFilter;
+import org.example.productservice.infrastructure.web.dto.transaction.TransactionResponse;
+import org.example.productservice.infrastructure.web.dto.transaction.UpdateTransactionRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/transactions")
+@RequestMapping("/transactions")
 @RequiredArgsConstructor
 public class TransactionController {
 
@@ -31,18 +35,18 @@ public class TransactionController {
     @PostMapping
     public ResponseEntity<ResponseDto<Void>> create(
             @Valid @RequestBody CreateTransactionRequest request,
-            @CookieValue String accessToken) {
+            @CookieValue(value = "accessToken", required = false) String accessToken) {
         UUID customerId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
         CreateTransactionCommand command = transactionMapper.toCommand(request, customerId);
         transactionUseCase.create(command);
         return new ResponseEntity<>(ResponseDto.success(null, "Transaction created successfully"), HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ResponseDto<TransactionResponse>> findById(@PathVariable UUID id) {
-        TransactionResponse data = transactionMapper.toResponse(transactionUseCase.findById(id));
-        return ResponseEntity.ok(ResponseDto.success(data));
-    }
+//    @GetMapping("/{id}")
+//    public ResponseEntity<ResponseDto<TransactionResponse>> findById(@PathVariable UUID id) {
+//        TransactionResponse data = transactionMapper.toResponse(transactionUseCase.findById(id));
+//        return ResponseEntity.ok(ResponseDto.success(data));
+//    }
 
     /**
      * User can only see their own transactions (where they are buyer or seller).
@@ -52,7 +56,7 @@ public class TransactionController {
     @PreAuthorize("hasAuthority('TRANSACTION:READ_SELF')")
     public ResponseEntity<ResponseDto<List<TransactionResponse>>> search(
             @Valid @ModelAttribute TransactionFilter filter,
-            @CookieValue String accessToken) {
+            @CookieValue(value = "accessToken", required = false) String accessToken) {
         UUID userId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
         TransactionSearchCriteria criteria = transactionMapper.toCriteria(filter, userId);
         PageCommand<Transaction> page = transactionUseCase.search(criteria);

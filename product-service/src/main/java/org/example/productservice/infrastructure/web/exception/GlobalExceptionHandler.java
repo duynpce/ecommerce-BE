@@ -1,4 +1,4 @@
-package org.example.productservice.infrastructure.exception;
+package org.example.productservice.infrastructure.web.exception;
 
 import org.example.productservice.domain.exception.*;
 import org.example.productservice.infrastructure.web.dto.ResponseDto;
@@ -66,5 +66,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ExternalServiceException.class)
     public ResponseEntity<ResponseDto<Void>> handleExternal(ExternalServiceException ex) {
         return build(ex.getStatus(), ex.getMessage());
+    }
+
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<ResponseDto<Void>> handleNullPointer(NullPointerException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 }

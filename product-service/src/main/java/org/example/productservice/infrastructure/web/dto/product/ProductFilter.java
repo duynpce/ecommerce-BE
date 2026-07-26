@@ -1,4 +1,4 @@
-package org.example.productservice.infrastructure.web.dto;
+package org.example.productservice.infrastructure.web.dto.product;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
