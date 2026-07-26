@@ -21,7 +21,5 @@ public interface SpringDataPromotionTicketRepository extends JpaRepository<Promo
 
     boolean existsByBankAccountNumber(String bankAccountNumber);
 
-    boolean existsByShopName(String shopName);
-
     boolean existsByTaxId(String taxId);
 }

@@ -17,11 +17,5 @@ public record SavePromotionRequest(
         String bankAccountNumber,
 
         @NotBlank
-        String shopName,
-
-        @NotBlank
-        String deliveryAddress,
-
-        @NotBlank
         String taxId
 ) {}

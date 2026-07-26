@@ -22,8 +22,6 @@ public interface TicketMapperMapstruct {
     @Mapping(target = "identityCardNumber", source = "domain.identityCardNumber")
     @Mapping(target = "bankName",           source = "domain.bankName")
     @Mapping(target = "bankAccountNumber",  source = "domain.bankAccountNumber")
-    @Mapping(target = "shopName",           source = "domain.shopName")
-    @Mapping(target = "deliveryAddress",    source = "domain.deliveryAddress")
     @Mapping(target = "taxId",              source = "domain.taxId")
     PromotionTicketEntity toPromotionTicketEntity(PromotionTicket domain, TicketEntity ticketEntity);
 
@@ -41,8 +39,6 @@ public interface TicketMapperMapstruct {
     @Mapping(target = "identityCardNumber", source = "request.identityCardNumber")
     @Mapping(target = "bankName",           source = "request.bankName")
     @Mapping(target = "bankAccountNumber",  source = "request.bankAccountNumber")
-    @Mapping(target = "shopName",           source = "request.shopName")
-    @Mapping(target = "deliveryAddress",    source = "request.deliveryAddress")
     @Mapping(target = "taxId",              source = "request.taxId")
     SavePromotionRequestCommand toCommand(SavePromotionRequest request, UUID userId);
 

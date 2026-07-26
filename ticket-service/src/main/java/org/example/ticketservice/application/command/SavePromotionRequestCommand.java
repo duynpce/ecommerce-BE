@@ -8,7 +8,5 @@ public record SavePromotionRequestCommand(
         String identityCardNumber,
         String bankName,
         String bankAccountNumber,
-        String shopName,
-        String deliveryAddress,
         String taxId
 ) {}

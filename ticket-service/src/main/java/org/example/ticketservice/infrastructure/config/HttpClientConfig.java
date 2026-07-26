@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.example.ticketservice.domain.exception.ExternalServiceException;
 import org.example.ticketservice.infrastructure.auth.httpclient.AuthHttpClient;
 import org.example.ticketservice.infrastructure.prop.AppProperties;
+import org.example.ticketservice.infrastructure.user.UserHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,11 @@ public class HttpClientConfig {
     @Bean
     public AuthHttpClient authHttpClient(AppProperties props) {
         return createHttpClient(props.getAuthServiceUrl(), AuthHttpClient.class);
+    }
+
+    @Bean
+    public UserHttpClient userHttpClient(AppProperties props) {
+        return createHttpClient(props.getUserServiceUrl(), UserHttpClient.class);
     }
 
     private <T> T createHttpClient(String baseUrl, Class<T> clientClass) {
