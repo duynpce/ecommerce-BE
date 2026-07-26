@@ -1,6 +1,5 @@
 package org.example.authservice.infrastructure.web.data.springdata;
 
-import org.example.authservice.domain.model.AccountCredential;
 import org.example.authservice.infrastructure.web.entity.AccountCredentialEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;

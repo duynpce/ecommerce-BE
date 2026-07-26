@@ -1,6 +1,7 @@
 package org.example.authservice.infrastructure.mapper;
 
 import org.example.authservice.application.command.AuthTokenCommand;
+import org.example.authservice.application.command.CompleteProfileCommand;
 import org.example.authservice.application.command.CreateCredentialAccountCommand;
 import org.example.authservice.application.command.RegisterCommand;
 import org.example.authservice.application.mapper.AuthMapper;
@@ -9,6 +10,7 @@ import org.example.authservice.domain.model.AuthToken;
 import org.example.authservice.domain.model.Permission;
 import org.example.authservice.domain.model.Role;
 import org.example.authservice.domain.valueobject.Email;
+import org.example.authservice.infrastructure.web.dto.CompleteProfileRequest;
 import org.example.authservice.infrastructure.web.dto.CreateAccountRequest;
 import org.example.authservice.infrastructure.web.dto.RegisterRequest;
 import org.example.authservice.infrastructure.web.dto.TokenResponse;
@@ -19,6 +21,8 @@ import org.example.authservice.infrastructure.web.entity.RoleEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+
+import java.util.UUID;
 
 @Mapper(componentModel = "spring")
 public interface AuthMapperMapstruct extends AuthMapper {
@@ -41,6 +45,11 @@ public interface AuthMapperMapstruct extends AuthMapper {
     Role toDomain(RoleEntity entity);
 
     Permission toDomain(PermissionEntity entity);
+
+    CompleteProfileCommand toCommand(CompleteProfileRequest request, String email);
+
+    @Override
+    CreateAccountRequest toCreateAccountRequest(CompleteProfileCommand command, UUID userId);
 
     @Named("stringToEmail")
     default Email stringToEmail(String email) {

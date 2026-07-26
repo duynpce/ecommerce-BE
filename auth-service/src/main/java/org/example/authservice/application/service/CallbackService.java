@@ -13,6 +13,7 @@ import org.example.authservice.application.repository.RoleRepository;
 import org.example.authservice.application.usecase.CallbackUseCase;
 import org.example.authservice.domain.constant.AccountStatus;
 import org.example.authservice.domain.exception.NotFoundException;
+import org.example.authservice.domain.exception.UnauthorizedException;
 import org.example.authservice.domain.model.AccountCredential;
 import org.example.authservice.domain.model.AuthToken;
 import org.example.authservice.domain.valueobject.Email;
@@ -56,7 +57,7 @@ public class CallbackService implements CallbackUseCase {
             accountCredential = new AccountCredential();
             accountCredential.setEmail(new Email(email));
             accountCredential.setKeycloakId(keycloakUserId);
-            accountCredential.setStatus(AccountStatus.ACTIVE);
+            accountCredential.setStatus(AccountStatus.INACTIVE);
             accountCredential.setRoles(Set.of(roleRepository.getDefaultRole().orElseThrow(() -> new NotFoundException("Default role not found"))));
             accountCredential = accountCredentialRepository.save(accountCredential);
         }
@@ -69,9 +70,17 @@ public class CallbackService implements CallbackUseCase {
 
         }
 
+        if(accountCredential.getStatus() == AccountStatus.BLOCKED){
+            throw new UnauthorizedException("Account is blocked. Please contact support.");
+        }
+
+        if(accountCredential.getStatus() == AccountStatus.CLOSED){
+            throw new UnauthorizedException("Account is closed. Please contact support.");
+        }
+
 
         Set<String> roles = accountCredential.extractRoleNames();
-        Set<String> permissions = accountCredential.extractPermissions();
+        Set<String> permissions = accountCredential.getStatus() == AccountStatus.ACTIVE ? accountCredential.extractPermissions() : Set.of("PROFILE:COMPLETE_SELF");
 
         return buildAndSaveAuthToken(keycloakSession.email(), accountCredential.getId(), keycloakSession.refreshToken(), roles, permissions);
     }

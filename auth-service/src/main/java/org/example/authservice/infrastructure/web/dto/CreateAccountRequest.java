@@ -1,6 +1,5 @@
 package org.example.authservice.infrastructure.web.dto;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.example.authservice.domain.constant.Gender;
 

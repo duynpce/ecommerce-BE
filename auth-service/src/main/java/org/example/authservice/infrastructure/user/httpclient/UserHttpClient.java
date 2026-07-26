@@ -8,6 +8,6 @@ import org.springframework.web.service.annotation.PostExchange;
 
 @HttpExchange
 public interface UserHttpClient {
-    @PostExchange("/api/v1/users/accounts")
+    @PostExchange("/api/v1/users/account-profiles")
     public void createAccount(@RequestBody @Valid CreateAccountRequest request);
 }
