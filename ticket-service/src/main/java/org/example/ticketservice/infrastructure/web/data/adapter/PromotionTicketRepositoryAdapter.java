@@ -62,12 +62,7 @@ public class PromotionTicketRepositoryAdapter implements PromotionTicketReposito
         return promotionTicketRepo.existsByBankAccountNumber(bankAccountNumber);
     }
 
-    @Override
-    public boolean existsByShopName(String shopName) {
-        return promotionTicketRepo.existsByShopName(shopName);
-    }
-
-    @Override
+       @Override
     public boolean existsByTaxId(String taxId) {
         return promotionTicketRepo.existsByTaxId(taxId);
     }

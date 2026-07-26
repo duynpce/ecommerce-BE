@@ -126,7 +126,7 @@
 	</detail>
 	<noData height="40">
 		<element kind="staticText" uuid="ef5278dc-5582-4570-9936-f8bafcfc382c" x="0" y="0" width="860" height="30" fontSize="11.0" italic="true" hTextAlign="Center" vTextAlign="Middle">
-			<text><![CDATA[No accounts matched the given filter.]]></text>
+			<text><![CDATA[No accountProfiles matched the given filter.]]></text>
 		</element>
 	</noData>
 </jasperReport>

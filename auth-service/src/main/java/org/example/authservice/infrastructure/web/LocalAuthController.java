@@ -55,7 +55,7 @@ public class LocalAuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<ResponseDto<Void>> refresh(
-            @CookieValue(required = false) String refreshToken,
+            @CookieValue(required = false, value = "refreshToken") String refreshToken,
             HttpServletResponse response) {
 
         AuthTokenCommand token = refreshTokenUseCase.localRefresh(refreshToken);
@@ -66,13 +66,27 @@ public class LocalAuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ResponseDto<?>> logout(
-            @CookieValue(required = false) String refreshToken,
+            @CookieValue(required = false, value = "refreshToken") String refreshToken,
             HttpServletResponse response) {
 
         logoutUseCase.localLogout(refreshToken);
         response.addHeader(HttpHeaders.SET_COOKIE, clearAccessCookie().toString());
         response.addHeader(HttpHeaders.SET_COOKIE, clearRefreshCookie().toString());
         return ResponseEntity.ok(ResponseDto.success(null));
+    }
+
+    @PreAuthorize("hasAuthority('PROMOTE:WRITE_ALL')")
+    @PostMapping("/promote/{userId}")
+    public ResponseEntity<ResponseDto<Void>> promoteToContributor(@PathVariable("userId") String userId) {
+        promoteUseCase.promoteToContributor(userId);
+
+        return ResponseEntity.ok(ResponseDto.success(null, "User promoted to contributor successfully"));
+    }
+
+
+    @GetMapping("/me")
+    public ResponseEntity<ResponseDto<Boolean>> getMe() {
+        return ResponseEntity.ok(ResponseDto.success(true));
     }
 
     @GetMapping("/username/{username}")
@@ -86,20 +100,6 @@ public class LocalAuthController {
             @PathVariable("email") String email) {
         return ResponseEntity.ok(ResponseDto.success(existUseCase.existsByEmail(email)));
     }
-
-
-    @PreAuthorize("hasAuthority('PROMOTE:WRITE_ALL')")
-    @PostMapping("/promote/{userId}")
-    public ResponseEntity<ResponseDto<Void>> promoteToContributor(@PathVariable("userId") String userId) {
-        promoteUseCase.promoteToContributor(userId);
-
-        return ResponseEntity.ok(ResponseDto.success(null, "User promoted to contributor successfully"));
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<ResponseDto<Boolean>> getMe() {
-        return ResponseEntity.ok(ResponseDto.success(true));
-    }   
 
     private ResponseCookie buildAccessCookie(String accessToken) {
         return ResponseCookie.from("accessToken", accessToken)

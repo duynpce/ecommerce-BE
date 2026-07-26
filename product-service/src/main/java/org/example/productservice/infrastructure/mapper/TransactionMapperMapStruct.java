@@ -6,10 +6,10 @@ import org.example.productservice.application.criteria.TransactionSearchCriteria
 import org.example.productservice.application.mapper.TransactionMapper;
 import org.example.productservice.domain.model.Transaction;
 import org.example.productservice.infrastructure.web.data.entity.TransactionEntity;
-import org.example.productservice.infrastructure.web.dto.CreateTransactionRequest;
-import org.example.productservice.infrastructure.web.dto.TransactionFilter;
-import org.example.productservice.infrastructure.web.dto.TransactionResponse;
-import org.example.productservice.infrastructure.web.dto.UpdateTransactionRequest;
+import org.example.productservice.infrastructure.web.dto.transaction.CreateTransactionRequest;
+import org.example.productservice.infrastructure.web.dto.transaction.TransactionFilter;
+import org.example.productservice.infrastructure.web.dto.transaction.TransactionResponse;
+import org.example.productservice.infrastructure.web.dto.transaction.UpdateTransactionRequest;
 import org.mapstruct.*;
 
 import java.time.Instant;

@@ -11,7 +11,6 @@ import java.util.UUID;
     uniqueConstraints = {
         @UniqueConstraint(name = "uq_promotion_identity_card",      columnNames = "identity_card_number"),
         @UniqueConstraint(name = "uq_promotion_bank_account",       columnNames = "bank_account_number"),
-        @UniqueConstraint(name = "uq_promotion_shop_name",          columnNames = "shop_name"),
         @UniqueConstraint(name = "uq_promotion_tax_id",             columnNames = "tax_id")
     }
 )
@@ -39,12 +38,6 @@ public class PromotionTicketEntity {
 
     @Column(name = "bank_account_number", nullable = false, unique = true)
     private String bankAccountNumber;
-
-    @Column(name = "shop_name", nullable = false, unique = true)
-    private String shopName;
-
-    @Column(name = "delivery_address", nullable = false)
-    private String deliveryAddress;
 
     @Column(name = "tax_id", nullable = false, unique = true)
     private String taxId;

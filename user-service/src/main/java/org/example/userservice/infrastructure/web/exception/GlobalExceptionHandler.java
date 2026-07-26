@@ -51,8 +51,8 @@ public class GlobalExceptionHandler {
 
     // ── 404 - Not Found ──────────────────────────────────────────────────────
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ResponseDto<Void>> handleNotFound(ResourceNotFoundException ex) {
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ResponseDto<Void>> handleNotFound(NotFoundException ex) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 

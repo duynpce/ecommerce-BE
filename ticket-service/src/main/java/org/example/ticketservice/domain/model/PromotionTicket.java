@@ -10,8 +10,6 @@ public class PromotionTicket extends Ticket {
     private String identityCardNumber;
     private String bankName;
     private String bankAccountNumber;
-    private String shopName;
-    private String deliveryAddress;
     private String taxId;
 
     public PromotionTicket() {
@@ -60,27 +58,6 @@ public class PromotionTicket extends Ticket {
         this.bankAccountNumber = bankAccountNumber.trim();
     }
 
-    public String getShopName() {
-        return shopName;
-    }
-
-    public void setShopName(String shopName) {
-        if (shopName == null || shopName.isBlank()) {
-            throw new IllegalArgumentException("Shop name cannot be null or blank.");
-        }
-        this.shopName = shopName.trim();
-    }
-
-    public String getDeliveryAddress() {
-        return deliveryAddress;
-    }
-
-    public void setDeliveryAddress(String deliveryAddress) {
-        if (deliveryAddress == null || deliveryAddress.isBlank()) {
-            throw new IllegalArgumentException("Delivery address cannot be null or blank.");
-        }
-        this.deliveryAddress = deliveryAddress.trim();
-    }
 
     public String getTaxId() {
         return taxId;

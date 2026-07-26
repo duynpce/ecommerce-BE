@@ -1,5 +1,6 @@
 package org.example.authservice.infrastructure.keycloak.httpclient;
 
+import org.example.authservice.infrastructure.keycloak.dto.KeycloakCredentialRepresentation;
 import org.example.authservice.infrastructure.keycloak.dto.KeycloakTokenResponse;
 import org.example.authservice.infrastructure.keycloak.dto.KeycloakUserRepresentation;
 import org.springframework.util.MultiValueMap;
@@ -11,7 +12,7 @@ import org.springframework.web.service.annotation.PostExchange;
 import org.springframework.web.service.annotation.PutExchange;
 
 @HttpExchange
-public interface KeycloakHttpClient {
+public interface    KeycloakHttpClient {
 
     @PostExchange(value = "/realms/{realm}/protocol/openid-connect/logout", contentType = "application/x-www-form-urlencoded")
     void logout(
@@ -38,5 +39,13 @@ public interface KeycloakHttpClient {
             @PathVariable String userId,
             @RequestHeader("Authorization") String bearerToken,
             @RequestBody KeycloakUserRepresentation user
+    );
+
+    @PutExchange(value = "/admin/realms/{realm}/users/{userId}/reset-password", contentType = "application/json")
+    void resetPassword(
+            @PathVariable String realm,
+            @PathVariable String userId,
+            @RequestHeader("Authorization") String bearerToken,
+            @RequestBody KeycloakCredentialRepresentation credential
     );
 }

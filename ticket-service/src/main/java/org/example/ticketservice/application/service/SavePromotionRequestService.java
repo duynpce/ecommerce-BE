@@ -40,8 +40,6 @@ public class SavePromotionRequestService implements SavePromotionRequestUseCase 
         variables.put("identityCardNumber", command.identityCardNumber());
         variables.put("bankName",           command.bankName());
         variables.put("bankAccountNumber",  command.bankAccountNumber());
-        variables.put("shopName",           command.shopName());
-        variables.put("deliveryAddress",    command.deliveryAddress());
         variables.put("taxId",              command.taxId());
 
         runtimeService.startProcessInstanceByKey(PROCESS_KEY, variables);
@@ -54,9 +52,6 @@ public class SavePromotionRequestService implements SavePromotionRequestUseCase 
         }
         if (promotionTicketRepository.existsByBankAccountNumber(command.bankAccountNumber())) {
             throw new IllegalArgumentException("Bank account number is already registered.");
-        }
-        if (promotionTicketRepository.existsByShopName(command.shopName())) {
-            throw new IllegalArgumentException("Shop name is already taken.");
         }
         if (promotionTicketRepository.existsByTaxId(command.taxId())) {
             throw new IllegalArgumentException("Tax ID is already registered.");

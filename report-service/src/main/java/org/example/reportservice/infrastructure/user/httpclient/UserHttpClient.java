@@ -12,7 +12,7 @@ import org.springframework.web.service.annotation.HttpExchange;
 @HttpExchange
 public interface UserHttpClient {
 
-    @GetExchange("/api/v1/users/accounts/report")
+    @GetExchange("/api/v1/users/account-profiles/report")
     ResponseDto<List<AccountReportResponsive>> getAccountReport(
             @RequestParam Integer page,
             @RequestParam Integer limit,
