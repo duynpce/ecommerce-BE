@@ -2,13 +2,12 @@ package org.example.userservice.domain.model;
 
 import org.example.userservice.domain.constant.Gender;
 import org.example.userservice.domain.valueobject.PhoneNumber;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Account {
+public class AccountProfile {
     private UUID id;
     private String firstName;
     private String lastName;
@@ -18,7 +17,7 @@ public class Account {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Account(String firstName, String lastName) {
+    public AccountProfile(String firstName, String lastName) {
         this.firstName = Objects.requireNonNull(firstName, "First name cannot be null");
         this.lastName  = Objects.requireNonNull(lastName,  "Last name cannot be null");
     }

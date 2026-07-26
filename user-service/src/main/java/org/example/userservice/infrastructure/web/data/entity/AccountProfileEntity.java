@@ -1,4 +1,4 @@
-package org.example.userservice.infrastructure.web.entity;
+package org.example.userservice.infrastructure.web.data.entity;
 
 
 import jakarta.persistence.*;
@@ -11,11 +11,11 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "account_profiles")
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class AccountEntity {
+public class AccountProfileEntity {
 
     @Id
     @Column(unique = true, nullable = false)

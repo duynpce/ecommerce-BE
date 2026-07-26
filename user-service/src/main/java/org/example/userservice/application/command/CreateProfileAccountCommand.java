@@ -4,7 +4,7 @@ import org.example.userservice.domain.constant.Gender;
 
 import java.util.UUID;
 
-public record CreateAccountCommand(
+public record CreateProfileAccountCommand(
         UUID id,
         String firstName,
         String lastName,
@@ -12,7 +12,7 @@ public record CreateAccountCommand(
         String address,
         Gender gender
 ) {
-    public CreateAccountCommand {
+    public CreateProfileAccountCommand {
         if (id == null) throw new IllegalArgumentException("Id cannot be null.");
         if (firstName == null) throw new IllegalArgumentException("First name cannot be null.");
         if (lastName == null) throw new IllegalArgumentException("Last name cannot be null.");

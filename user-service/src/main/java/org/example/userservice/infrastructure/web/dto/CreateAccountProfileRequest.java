@@ -2,11 +2,10 @@ package org.example.userservice.infrastructure.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
 import org.example.userservice.domain.constant.Gender;
 
 import java.util.UUID;
-public record CreateAccountRequest(
+public record CreateAccountProfileRequest(
 
     @NotNull(message = "userId cannot be null")
     UUID userId,

@@ -7,7 +7,7 @@ import java.time.Instant;
 /**
  * Filter-only fields. Pagination/sorting is handled separately via Spring's Pageable.
  */
-public record AccountSearchCriteria(
+public record AccountProfileSearchCriteria(
         String firstName,
         String lastName,
         Gender gender,

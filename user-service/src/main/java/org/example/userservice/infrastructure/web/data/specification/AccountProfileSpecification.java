@@ -1,19 +1,19 @@
 package org.example.userservice.infrastructure.web.data.specification;
 
 import jakarta.persistence.criteria.Predicate;
-import org.example.userservice.application.criteria.AccountSearchCriteria;
-import org.example.userservice.infrastructure.web.entity.AccountEntity;
+import org.example.userservice.application.criteria.AccountProfileSearchCriteria;
+import org.example.userservice.infrastructure.web.data.entity.AccountProfileEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class AccountSpecification {
+public final class AccountProfileSpecification {
 
-    private AccountSpecification() {
+    private AccountProfileSpecification() {
     }
 
-    public static Specification<AccountEntity> fromCriteria(AccountSearchCriteria criteria) {
+    public static Specification<AccountProfileEntity> fromCriteria(AccountProfileSearchCriteria criteria) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
