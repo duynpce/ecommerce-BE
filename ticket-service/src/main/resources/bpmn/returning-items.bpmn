@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_11zc6qf" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.48.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.21.0">
+  <bpmn:process id="Process_0fsfzgs" name="buying items procedure" isExecutable="true">
+    <bpmn:documentation>transaction status is delivering</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1" name="buy a product">
+      <bpmn:documentation>transaction status is pending</bpmn:documentation>
+      <bpmn:outgoing>Flow_0rg42yu</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="confirm-the-transaction" name="confirm the transaction" camunda:assignee="contributor of the product">
+      <bpmn:documentation>the contributor of the product confirm whether the transaction can be executed or not</bpmn:documentation>
+      <bpmn:incoming>Flow_0rg42yu</bpmn:incoming>
+      <bpmn:outgoing>Flow_0gqte6r</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0rg42yu" sourceRef="StartEvent_1" targetRef="confirm-the-transaction" />
+    <bpmn:exclusiveGateway id="Gateway_13ykcro">
+      <bpmn:incoming>Flow_0gqte6r</bpmn:incoming>
+      <bpmn:outgoing>Flow_0r59t24</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1us7y2w</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0gqte6r" sourceRef="confirm-the-transaction" targetRef="Gateway_13ykcro" />
+    <bpmn:serviceTask id="Activity_1i64x9m" name="transaction confirmed">
+      <bpmn:documentation>transaction status is packing</bpmn:documentation>
+      <bpmn:incoming>Flow_0r59t24</bpmn:incoming>
+      <bpmn:outgoing>Flow_0gpfkai</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0r59t24" name="transaction approved" sourceRef="Gateway_13ykcro" targetRef="Activity_1i64x9m">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approve == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="transaction-rejected" name="transaction rejected">
+      <bpmn:documentation>transaction's status is rejected</bpmn:documentation>
+      <bpmn:incoming>Flow_1us7y2w</bpmn:incoming>
+      <bpmn:outgoing>Flow_0yuzwxi</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1us7y2w" name="transaction rejected" sourceRef="Gateway_13ykcro" targetRef="transaction-rejected">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approve == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_0b58587" name="transaction is set to rejected">
+      <bpmn:incoming>Flow_0yuzwxi</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0yuzwxi" sourceRef="transaction-rejected" targetRef="Event_0b58587" />
+    <bpmn:userTask id="delivered-to-transportation-confirmation" name="confirm the product was delivered to the transportation agency" camunda:assignee="contributor of the product">
+      <bpmn:incoming>Flow_0gpfkai</bpmn:incoming>
+      <bpmn:incoming>Flow_retry_to_transport</bpmn:incoming>
+      <bpmn:outgoing>Flow_0s3pys2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0gpfkai" sourceRef="Activity_1i64x9m" targetRef="delivered-to-transportation-confirmation" />
+    <bpmn:intermediateCatchEvent id="mock-delivery-process" name="mock delivery process">
+      <bpmn:documentation>mock delivery time by setting</bpmn:documentation>
+      <bpmn:incoming>Flow_0s3pys2</bpmn:incoming>
+      <bpmn:outgoing>Flow_0qro8j6</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1aulqng">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_0s3pys2" sourceRef="delivered-to-transportation-confirmation" targetRef="mock-delivery-process" />
+    <bpmn:serviceTask id="deliver-the-product" name="deliver the product">
+      <bpmn:documentation>product status is under user confirmation</bpmn:documentation>
+      <bpmn:incoming>Flow_0qro8j6</bpmn:incoming>
+      <bpmn:outgoing>Flow_1jdp7g0</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0qro8j6" sourceRef="mock-delivery-process" targetRef="deliver-the-product" />
+    <bpmn:userTask id="confirm-delivery-status" name="Confirm Delivery Status" camunda:assignee="the buyer of the product">
+      <bpmn:documentation>Customer confirms whether the product was received, not received, or wants to return it.</bpmn:documentation>
+      <bpmn:incoming>Flow_1jdp7g0</bpmn:incoming>
+      <bpmn:outgoing>Flow_1l0tmco</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1jdp7g0" sourceRef="deliver-the-product" targetRef="confirm-delivery-status" />
+    <bpmn:boundaryEvent id="BoundaryTimer_AutoDelivered" name="1 min auto-delivered" attachedToRef="confirm-delivery-status">
+      <bpmn:outgoing>Flow_auto_delivered</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_AutoDelivered">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT1M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_auto_delivered" sourceRef="BoundaryTimer_AutoDelivered" targetRef="Activity_set_success" />
+    <bpmn:exclusiveGateway id="Gateway_17zsqkh" name="delivery outcome">
+      <bpmn:incoming>Flow_1l0tmco</bpmn:incoming>
+      <bpmn:outgoing>Flow_0mo9xxv</bpmn:outgoing>
+      <bpmn:outgoing>Flow_11399hj</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0qynngk</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1l0tmco" sourceRef="confirm-delivery-status" targetRef="Gateway_17zsqkh" />
+    <bpmn:serviceTask id="Activity_05354wb" name="increment delivery attempt">
+      <bpmn:documentation>Increments deliveryAttempt counter. If deliveryAttempt &gt;= 3 the "failed" path is taken.</bpmn:documentation>
+      <bpmn:incoming>Flow_0mo9xxv</bpmn:incoming>
+      <bpmn:outgoing>Flow_check_attempts</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0mo9xxv" name="product not delivered" sourceRef="Gateway_17zsqkh" targetRef="Activity_05354wb">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${deliveryStatus == 'not_delivered'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="Gateway_attempt_check" name="3rd attempt?">
+      <bpmn:incoming>Flow_check_attempts</bpmn:incoming>
+      <bpmn:outgoing>Flow_retry_to_transport</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_failed</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_check_attempts" sourceRef="Activity_05354wb" targetRef="Gateway_attempt_check" />
+    <bpmn:sequenceFlow id="Flow_retry_to_transport" name="retry (attempt &#60; 3)" sourceRef="Gateway_attempt_check" targetRef="delivered-to-transportation-confirmation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${deliveryAttempt &lt; 3}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="Activity_set_failed" name="set status to failed">
+      <bpmn:documentation>Sets the transaction/delivery status to FAILED after 3 unsuccessful delivery attempts.</bpmn:documentation>
+      <bpmn:incoming>Flow_to_failed</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_end_failed</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_to_failed" name="3rd attempt reached" sourceRef="Gateway_attempt_check" targetRef="Activity_set_failed">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${deliveryAttempt &gt;= 3}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="End_failed" name="delivery failed">
+      <bpmn:incoming>Flow_to_end_failed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_to_end_failed" sourceRef="Activity_set_failed" targetRef="End_failed" />
+    <bpmn:serviceTask id="Activity_0ajy57v" name="set status to success">
+      <bpmn:documentation>Sets the transaction/delivery status to SUCCESS.</bpmn:documentation>
+      <bpmn:incoming>Flow_11399hj</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_end_success</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_11399hj" name="product delivered" sourceRef="Gateway_17zsqkh" targetRef="Activity_0ajy57v">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${deliveryStatus == 'delivered'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="Activity_set_success" name="set status to success">
+      <bpmn:documentation>Auto-triggered after 1-minute boundary timer: sets status to SUCCESS.</bpmn:documentation>
+      <bpmn:incoming>Flow_auto_delivered</bpmn:incoming>
+      <bpmn:incoming>Flow_to_end_success</bpmn:incoming>
+      <bpmn:outgoing>Flow_success_to_end</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_to_end_success" sourceRef="Activity_0ajy57v" targetRef="Activity_set_success" />
+    <bpmn:endEvent id="End_success" name="transaction successful">
+      <bpmn:incoming>Flow_success_to_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_success_to_end" sourceRef="Activity_set_success" targetRef="End_success" />
+    <bpmn:serviceTask id="Activity_0yhg048" name="set status to returned">
+      <bpmn:documentation>Sets the transaction/delivery status to RETURNED.</bpmn:documentation>
+      <bpmn:incoming>Flow_0qynngk</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_return_process</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0qynngk" name="product returned" sourceRef="Gateway_17zsqkh" targetRef="Activity_0yhg048">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${deliveryStatus == 'returned'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:callActivity id="CallActivity_returning" name="activate returning-products process" calledElement="returning-products">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:out variables="all" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_to_return_process</bpmn:incoming>
+      <bpmn:outgoing>Flow_return_to_end</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="Flow_to_return_process" sourceRef="Activity_0yhg048" targetRef="CallActivity_returning" />
+    <bpmn:endEvent id="End_returned" name="product returned">
+      <bpmn:incoming>Flow_return_to_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_return_to_end" sourceRef="CallActivity_returning" targetRef="End_returned" />
+  </bpmn:process>
+  <bpmn:process id="returning-products" name="returning products" isExecutable="true">
+    <bpmn:startEvent id="ReturnStart" name="return initiated">
+      <bpmn:outgoing>Flow_ret_01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:intermediateCatchEvent id="ReturnMockDelivery" name="mock return transit">
+      <bpmn:documentation>Simulates the time for the product to travel back to the contributor.</bpmn:documentation>
+      <bpmn:incoming>Flow_ret_01</bpmn:incoming>
+      <bpmn:incoming>Flow_1vclihx</bpmn:incoming>
+      <bpmn:outgoing>Flow_ret_02</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_ReturnMock">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_ret_01" sourceRef="ReturnStart" targetRef="ReturnMockDelivery" />
+    <bpmn:userTask id="ReturnConfirm" name="confirm product received back" camunda:assignee="contributor of the product">
+      <bpmn:documentation>Contributor confirms that the returned product has physically arrived. No return choice available at this step.</bpmn:documentation>
+      <bpmn:incoming>Flow_ret_02</bpmn:incoming>
+      <bpmn:outgoing>Flow_0h9tz28</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_ret_02" sourceRef="ReturnMockDelivery" targetRef="ReturnConfirm" />
+    <bpmn:serviceTask id="ReturnSetStatus" name="product received" camunda:delegateExpression="${returnProductReceivedDelegate}">
+      <bpmn:documentation>Marks the return process as fully completed.</bpmn:documentation>
+      <bpmn:incoming>Flow_0fpjmdx</bpmn:incoming>
+      <bpmn:outgoing>Flow_ret_04</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="ReturnEnd" name="return completed">
+      <bpmn:incoming>Flow_ret_04</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ret_04" sourceRef="ReturnSetStatus" targetRef="ReturnEnd" />
+    <bpmn:exclusiveGateway id="Gateway_1ujpt6r">
+      <bpmn:incoming>Flow_0h9tz28</bpmn:incoming>
+      <bpmn:outgoing>Flow_0fpjmdx</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0bvrxvj</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0h9tz28" sourceRef="ReturnConfirm" targetRef="Gateway_1ujpt6r" />
+    <bpmn:sequenceFlow id="Flow_0fpjmdx" sourceRef="Gateway_1ujpt6r" targetRef="ReturnSetStatus">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${received == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="Activity_180sl6b" name="product not recieved" camunda:delegateExpression="${returnProductNotReceivedDelegate}">
+      <bpmn:incoming>Flow_0bvrxvj</bpmn:incoming>
+      <bpmn:outgoing>Flow_1vclihx</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0bvrxvj" sourceRef="Gateway_1ujpt6r" targetRef="Activity_180sl6b">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${received == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1vclihx" sourceRef="Activity_180sl6b" targetRef="ReturnMockDelivery" />
+
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Return" bpmnElement="returning-products">
+      <bpmndi:BPMNShape id="ReturnStart_di" bpmnElement="ReturnStart">
+        <dc:Bounds x="182" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="160" y="235" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReturnMockDelivery_di" bpmnElement="ReturnMockDelivery">
+        <dc:Bounds x="282" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="258" y="235" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReturnConfirm_di" bpmnElement="ReturnConfirm">
+        <dc:Bounds x="390" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReturnEnd_di" bpmnElement="ReturnEnd">
+        <dc:Bounds x="882" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="859" y="235" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReturnSetStatus_di" bpmnElement="ReturnSetStatus">
+        <dc:Bounds x="660" y="170" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1ujpt6r_di" bpmnElement="Gateway_1ujpt6r" isMarkerVisible="true">
+        <dc:Bounds x="565" y="185" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_180sl6b_di" bpmnElement="Activity_180sl6b">
+        <dc:Bounds x="660" y="70" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ret_01_di" bpmnElement="Flow_ret_01">
+        <di:waypoint x="218" y="210" />
+        <di:waypoint x="282" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ret_02_di" bpmnElement="Flow_ret_02">
+        <di:waypoint x="318" y="210" />
+        <di:waypoint x="390" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ret_04_di" bpmnElement="Flow_ret_04">
+        <di:waypoint x="760" y="210" />
+        <di:waypoint x="882" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0h9tz28_di" bpmnElement="Flow_0h9tz28">
+        <di:waypoint x="490" y="210" />
+        <di:waypoint x="565" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0fpjmdx_di" bpmnElement="Flow_0fpjmdx">
+        <di:waypoint x="615" y="210" />
+        <di:waypoint x="660" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bvrxvj_di" bpmnElement="Flow_0bvrxvj">
+        <di:waypoint x="580" y="195" />
+        <di:waypoint x="580" y="110" />
+        <di:waypoint x="660" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1vclihx_di" bpmnElement="Flow_1vclihx">
+        <di:waypoint x="660" y="80" />
+        <di:waypoint x="300" y="80" />
+        <di:waypoint x="300" y="192" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
