@@ -8,7 +8,6 @@ import org.example.productservice.application.command.PageCommand;
 import org.example.productservice.application.command.UpdateProductCommand;
 import org.example.productservice.application.criteria.ProductSearchCriteria;
 import org.example.productservice.application.mapper.ProductMapper;
-import org.example.productservice.application.repository.ShopRepository;
 import org.example.productservice.application.usecase.ProductUseCase;
 import org.example.productservice.application.client.TokenGeneratorClient;
 import org.example.productservice.domain.model.Product;

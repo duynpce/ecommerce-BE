@@ -41,6 +41,8 @@ public class TransactionEntity extends BaseEntity {
 
     private BigDecimal totalAmount;
 
+    private String description;
+
     @Builder.Default
     private TransactionStatus status = TransactionStatus.PENDING;
 

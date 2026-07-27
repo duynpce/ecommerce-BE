@@ -7,7 +7,5 @@ import java.util.UUID;
 
 public record UpdateTransactionCommand(
         UUID id,
-        Integer quantity,
-        BigDecimal price,
         TransactionStatus status
 ) {}

@@ -19,6 +19,7 @@ public class TransactionResponse {
     private UUID productId;
     private UUID contributorId;
     private UUID customerId;
+    private String description;
     private Integer quantity;
     private BigDecimal totalAmount;
     private TransactionStatus status;

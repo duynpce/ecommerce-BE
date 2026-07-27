@@ -36,6 +36,7 @@ server:
 app:
   auth-service-url: ${AUTH_SERVICE_URL:http://auth-service:8084}
   user-service-url: ${USER_SERVICE_URL:http://user-service:8081}
+  product-service-url: ${PRODUCT_SERVICE_URL:http://product-service:8082}
 
 camunda:
   bpm:

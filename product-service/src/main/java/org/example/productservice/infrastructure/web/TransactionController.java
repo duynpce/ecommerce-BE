@@ -10,11 +10,13 @@ import org.example.productservice.application.criteria.TransactionSearchCriteria
 import org.example.productservice.application.mapper.TransactionMapper;
 import org.example.productservice.application.usecase.TransactionUseCase;
 import org.example.productservice.domain.model.Transaction;
+import org.example.productservice.domain.constant.TransactionStatus;
 import org.example.productservice.infrastructure.web.dto.*;
 import org.example.productservice.infrastructure.web.dto.transaction.CreateTransactionRequest;
 import org.example.productservice.infrastructure.web.dto.transaction.TransactionFilter;
 import org.example.productservice.infrastructure.web.dto.transaction.TransactionResponse;
 import org.example.productservice.infrastructure.web.dto.transaction.UpdateTransactionRequest;
+import org.example.productservice.infrastructure.web.dto.transaction.UpdateTransactionStatusRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +35,7 @@ public class TransactionController {
     private final TokenGeneratorClient tokenGeneratorClient;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('TRANSACTION:CREATE_SELF')")
     public ResponseEntity<ResponseDto<Void>> create(
             @Valid @RequestBody CreateTransactionRequest request,
             @CookieValue(value = "accessToken", required = false) String accessToken) {
@@ -113,4 +116,31 @@ public class TransactionController {
         transactionUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Called by ticket-service Camunda delegates to update transaction status
+     * during the buying-items-procedure lifecycle.
+     * Example: PATCH /api/v1/transactions/{id}/status
+     */
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ResponseDto<TransactionResponse>> updateStatus(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateTransactionStatusRequest request) {
+        TransactionStatus status = request.status();
+        TransactionResponse data = transactionMapper.toResponse(transactionUseCase.updateStatus(id, status));
+        return ResponseEntity.ok(ResponseDto.success(data, "Transaction status updated successfully"));
+    }
+
+    /**
+     * Called by ticket-service Camunda delegate when return process succeeds.
+     * Sets transaction status to RETURNED and restores product stock quantity.
+     * Example: POST /api/v1/transactions/{id}/return
+     */
+    @PostMapping("/{id}/return")
+    public ResponseEntity<ResponseDto<TransactionResponse>> returnTransaction(
+            @PathVariable UUID id) {
+        TransactionResponse data = transactionMapper.toResponse(transactionUseCase.returnTransaction(id));
+        return ResponseEntity.ok(ResponseDto.success(data, "Transaction marked as returned and product stock restored"));
+    }
 }
+

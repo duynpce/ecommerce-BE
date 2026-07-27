@@ -4,6 +4,7 @@ import org.example.productservice.application.command.CreateTransactionCommand;
 import org.example.productservice.application.command.PageCommand;
 import org.example.productservice.application.command.UpdateTransactionCommand;
 import org.example.productservice.application.criteria.TransactionSearchCriteria;
+import org.example.productservice.domain.constant.TransactionStatus;
 import org.example.productservice.domain.model.Transaction;
 
 import java.util.UUID;
@@ -14,4 +15,18 @@ public interface TransactionUseCase {
     Transaction update(UpdateTransactionCommand command);
     void delete(UUID id);
     PageCommand<Transaction> search(TransactionSearchCriteria criteria);
+
+    /**
+     * Updates only the status of a transaction.
+     * Called by ticket-service Camunda delegates during buying-items-procedure.
+     */
+    Transaction updateStatus(UUID id, TransactionStatus status);
+
+    /**
+     * Processes a transaction return: marks transaction status as RETURNED
+     * and adds the purchased item quantity back to the product's available stock.
+     */
+    Transaction returnTransaction(UUID id);
 }
+
+

@@ -78,4 +78,34 @@ public class TransactionService implements TransactionUseCase {
     public PageCommand<Transaction> search(TransactionSearchCriteria criteria) {
         return transactionRepository.search(criteria);
     }
+
+    @Override
+    @Transactional
+    public Transaction updateStatus(UUID id, TransactionStatus status) {
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Transaction not found: " + id));
+        transaction.setStatus(status);
+        return transactionRepository.save(transaction);
+    }
+
+    @Override
+    @Transactional
+    public Transaction returnTransaction(UUID id) {
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Transaction not found: " + id));
+
+        if (transaction.getStatus() != TransactionStatus.RETURNED) {
+            transaction.setStatus(TransactionStatus.RETURNED);
+            transactionRepository.save(transaction);
+
+            Product product = productRepository.findById(transaction.getProductId())
+                    .orElseThrow(() -> new NotFoundException("Product not found: " + transaction.getProductId()));
+            product.setQuantity(product.getQuantity() + transaction.getQuantity());
+            productRepository.save(product);
+        }
+
+        return transaction;
+    }
 }
+
+

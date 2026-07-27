@@ -15,10 +15,11 @@ public class Transaction {
     private BigDecimal price;
     private BigDecimal totalAmount;
     private TransactionStatus status;
+    private String description;
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Transaction(UUID id, UUID productId, UUID contributorId, UUID customerId, Integer quantity, BigDecimal price,
+    public Transaction(UUID id, UUID productId, UUID contributorId, UUID customerId, Integer quantity, BigDecimal price, String description,
             Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.productId = productId;
@@ -26,6 +27,7 @@ public class Transaction {
         this.customerId = customerId;
         this.quantity = quantity;
         this.price = price;
+        this.description = description;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.totalAmount = calculateTotal();
@@ -88,6 +90,14 @@ public class Transaction {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Instant getCreatedAt() {
