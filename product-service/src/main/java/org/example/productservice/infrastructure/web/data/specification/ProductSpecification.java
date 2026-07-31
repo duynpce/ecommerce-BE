@@ -27,6 +27,10 @@ public final class ProductSpecification {
             criteriaList.add(Criteria.where("contributorId").is(criteria.contributorId()));
         }
 
+        if(criteria.shopId() != null) {
+            criteriaList.add(Criteria.where("shopId").is(criteria.shopId()));
+        }
+
         // Merge min/max price into a single Criteria to avoid duplicate-key error
         if (criteria.minPrice() != null && criteria.maxPrice() != null) {
             criteriaList.add(Criteria.where("price")

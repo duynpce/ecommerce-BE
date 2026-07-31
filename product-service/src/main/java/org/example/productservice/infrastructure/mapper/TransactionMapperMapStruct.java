@@ -44,9 +44,17 @@ public interface TransactionMapperMapStruct extends TransactionMapper {
 
     @Override
     @Mapping(target = "userId", source = "userId")
+    @Mapping(target = "contributorId", ignore = true)
     @Mapping(target = "createdFrom", source = "filter.createdFrom", qualifiedByName = "localDateToInstantStart")
     @Mapping(target = "createdTo", source = "filter.createdTo", qualifiedByName = "localDateToInstantEnd")
     TransactionSearchCriteria toCriteria(TransactionFilter filter, UUID userId);
+
+    @Override
+    @Mapping(target = "userId", ignore = true)
+    @Mapping(target = "contributorId", source = "contributorId")
+    @Mapping(target = "createdFrom", source = "filter.createdFrom", qualifiedByName = "localDateToInstantStart")
+    @Mapping(target = "createdTo", source = "filter.createdTo", qualifiedByName = "localDateToInstantEnd")
+    TransactionSearchCriteria toContributorCriteria(TransactionFilter filter, UUID contributorId);
 
     @Override
     TransactionResponse toResponse(Transaction transaction);

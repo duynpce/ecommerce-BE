@@ -62,7 +62,7 @@ public class ProductController {
         UUID contributorId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
 
         // // get product  from the logged-in contributor with pagination
-        ProductSearchCriteria criteria = new ProductSearchCriteria(null, null, contributorId, null, null, null, null, paginationDto.getPage(), paginationDto.getLimit());
+        ProductSearchCriteria criteria = new ProductSearchCriteria(null,null, null, contributorId, null, null, null, null, paginationDto.getPage(), paginationDto.getLimit());
 
         PageCommand<Product> page = productUseCase.search(criteria);
         List<ProductResponse> data = page.getContent().stream()

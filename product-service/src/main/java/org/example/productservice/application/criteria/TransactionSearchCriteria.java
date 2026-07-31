@@ -12,6 +12,7 @@ import java.util.UUID;
  */
 public record TransactionSearchCriteria(
         UUID userId,
+        UUID contributorId,
         UUID productId,
         TransactionStatus status,
         Instant createdFrom,

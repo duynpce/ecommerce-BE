@@ -40,14 +40,14 @@ public class ProductService implements ProductUseCase {
     public Product create(CreateProductCommand command) {
         log.info("Creating product with name: {}", command.name());
 
-        List<String> imgUrls = uploadAll(command.imgs());
-
         Shop shop = shopRepository.findById(command.shopId())
                 .orElseThrow(() -> new NotFoundException("Shop not found: " + command.shopId()));
 
         if(!shop.getContributorId().equals(command.contributorId())){
             throw new ForbiddenException("You are not the owner of this shop");
         }
+
+        List<String> imgUrls = uploadAll(command.imgs());
 
         Product product = productMapper.toDomain(command);
         product.setImgUrls(imgUrls);
