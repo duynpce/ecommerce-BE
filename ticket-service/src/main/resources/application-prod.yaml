@@ -36,9 +36,24 @@ server:
 app:
   auth-service-url: ${AUTH_SERVICE_URL:http://auth-service:8084}
   user-service-url: ${USER_SERVICE_URL:http://user-service:8081}
+  product-service-url: ${PRODUCT_SERVICE_URL:http://product-service:8085}
 
+# ---------------------------------------------------------------------------
+# Camunda BPM
+# ---------------------------------------------------------------------------
 camunda:
   bpm:
+    admin-user:
+      id: admin
+      password: admin
+      first-name: Admin
+    webapp:
+      application-path: /camunda
+      index-redirect-enabled: true
+    filter:
+      create: All tasks
     generic-properties:
       properties:
-        historyTimeToLive: 30  # days, adjust as needed
+        historyTimeToLive: 30
+    auto-deployment-enabled: true
+    deployment-resource-pattern: classpath*:bpmn/**/*.bpmn

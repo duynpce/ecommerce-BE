@@ -11,6 +11,7 @@ import java.util.UUID;
  * LocalDate from the filter is converted to Instant here for JPA comparison.
  */
 public record ProductSearchCriteria(
+        UUID shopId,
         String name,
         ProductCategory category,
         UUID contributorId,

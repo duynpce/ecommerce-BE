@@ -33,6 +33,7 @@ public class ShopRepositoryAdapter implements ShopRepository {
         if (entity.getId() == null) {
             entity.setId(UUID.randomUUID());
         }
+
         return shopMapper.toDomain(springDataRepo.save(entity));
     }
 

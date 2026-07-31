@@ -24,5 +24,7 @@ public interface TransactionMapper {
     // userId null → READ_ALL (no user restriction); userId set → READ_SELF
     TransactionSearchCriteria toCriteria(TransactionFilter filter, UUID userId);
 
+    TransactionSearchCriteria toContributorCriteria(TransactionFilter filter, UUID contributorId);
+
     TransactionResponse toResponse(Transaction transaction);
 }

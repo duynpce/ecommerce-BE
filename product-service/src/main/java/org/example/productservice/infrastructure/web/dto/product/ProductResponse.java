@@ -18,6 +18,7 @@ import java.util.UUID;
 public class ProductResponse {
     private UUID id;
     private UUID contributorId;
+    private UUID shopId;
     private List<String> imgUrls;
     private String name;
     private BigDecimal price;

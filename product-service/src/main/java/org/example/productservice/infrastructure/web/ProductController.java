@@ -8,7 +8,6 @@ import org.example.productservice.application.command.PageCommand;
 import org.example.productservice.application.command.UpdateProductCommand;
 import org.example.productservice.application.criteria.ProductSearchCriteria;
 import org.example.productservice.application.mapper.ProductMapper;
-import org.example.productservice.application.repository.ShopRepository;
 import org.example.productservice.application.usecase.ProductUseCase;
 import org.example.productservice.application.client.TokenGeneratorClient;
 import org.example.productservice.domain.model.Product;
@@ -63,7 +62,7 @@ public class ProductController {
         UUID contributorId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
 
         // // get product  from the logged-in contributor with pagination
-        ProductSearchCriteria criteria = new ProductSearchCriteria(null, null, contributorId, null, null, null, null, paginationDto.getPage(), paginationDto.getLimit());
+        ProductSearchCriteria criteria = new ProductSearchCriteria(null,null, null, contributorId, null, null, null, null, paginationDto.getPage(), paginationDto.getLimit());
 
         PageCommand<Product> page = productUseCase.search(criteria);
         List<ProductResponse> data = page.getContent().stream()

@@ -173,6 +173,9 @@ services:
       - JWT_ACCESS_SECRET=bXktYWNjZXNzLXNlY3JldC1rZXktZm9yLXNob3BwaW5nLWFwcC0yNTY=
       - AUTH_SERVICE_URL=http://auth-service:8084
       - USER_SERVICE_URL=http://user-service:8081
+      - PRODUCT_SERVICE_URL=http://product-service:8085
+      - CAMUNDA_ADMIN_USERNAME=admin
+      - CAMUNDA_ADMIN_PASSWORD=admin
     ports:
       - "8083:8083"
     depends_on:
@@ -200,6 +203,7 @@ services:
       - GCP_BUCKET_NAME=my-product-img
       - GCP_CONFIG_PATH=/run/secrets/gcp-key.json
       - JWT_ACCESS_SECRET=bXktYWNjZXNzLXNlY3JldC1rZXktZm9yLXNob3BwaW5nLWFwcC0yNTY=
+      - TICKET_SERVICE_URL=http://ticket-service:8083
     ports:
       - "8085:8085"
     volumes:

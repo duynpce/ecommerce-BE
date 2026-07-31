@@ -22,6 +22,10 @@ public final class TransactionSpecification {
             ));
         }
 
+        if (criteria.contributorId() != null) {
+            criteriaList.add(Criteria.where("contributorId").is(criteria.contributorId()));
+        }
+
         if (criteria.productId() != null) {
             criteriaList.add(Criteria.where("productId").is(criteria.productId()));
         }
@@ -47,4 +51,6 @@ public final class TransactionSpecification {
         }
         return query;
     }
+
+
 }

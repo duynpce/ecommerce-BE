@@ -1,12 +1,13 @@
 package org.example.ticketservice.infrastructure.config;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import  com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelOption;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.ticketservice.domain.exception.ExternalServiceException;
 import org.example.ticketservice.infrastructure.auth.httpclient.AuthHttpClient;
+import org.example.ticketservice.infrastructure.product.ProductHttpClient;
 import org.example.ticketservice.infrastructure.prop.AppProperties;
 import org.example.ticketservice.infrastructure.user.UserHttpClient;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +43,11 @@ public class HttpClientConfig {
     @Bean
     public UserHttpClient userHttpClient(AppProperties props) {
         return createHttpClient(props.getUserServiceUrl(), UserHttpClient.class);
+    }
+
+    @Bean
+    public ProductHttpClient productHttpClient(AppProperties props) {
+        return createHttpClient(props.getProductServiceUrl(), ProductHttpClient.class);
     }
 
     private <T> T createHttpClient(String baseUrl, Class<T> clientClass) {

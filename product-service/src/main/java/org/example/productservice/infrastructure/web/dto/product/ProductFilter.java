@@ -16,6 +16,7 @@ import java.util.UUID;
  */
 public record ProductFilter(
 
+        UUID shopId,
         String name,
         ProductCategory category,
         UUID contributorId,

@@ -13,4 +13,6 @@ public class AppProperties {
 
     private String authServiceUrl;
     private String userServiceUrl;
+    private String productServiceUrl;
+
 }

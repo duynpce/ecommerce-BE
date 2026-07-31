@@ -23,3 +23,6 @@ gcp:
 
 jwt:
   access-secret: ${JWT_ACCESS_SECRET}
+
+app:
+  ticket-service-url: ${TICKET_SERVICE_URL:http://ticket-service:8083}

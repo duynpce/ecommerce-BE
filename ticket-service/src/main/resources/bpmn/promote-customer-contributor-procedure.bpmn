@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1krkrxv" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.48.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.24.0">
-  <bpmn:process id="promote-accountProfile-procedure" name="promote user from customer to contributor procedure" isExecutable="true">
+  <bpmn:process id="promote-account-procedure" name="promote user from customer to contributor procedure" isExecutable="true">
     <bpmn:userTask id="consider-the-request" name="consider the request" camunda:candidateGroups="admin">
       <bpmn:incoming>Flow_09bbrzz</bpmn:incoming>
       <bpmn:outgoing>Flow_0kvuv35</bpmn:outgoing>
@@ -39,7 +39,7 @@
     <bpmn:sequenceFlow id="Flow_09bbrzz" sourceRef="Event_004pa54" targetRef="consider-the-request" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="promote-accountProfile-procedure">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="promote-account-procedure">
       <bpmndi:BPMNShape id="Activity_0lhr6fn_di" bpmnElement="consider-the-request">
         <dc:Bounds x="290" y="140" width="100" height="80" />
         <bpmndi:BPMNLabel />
