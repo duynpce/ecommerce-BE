@@ -22,7 +22,10 @@ spring:
               uri: ${TICKET_SERVICE_URL:http://ticket-service:8083}
               predicates:
                 - Path=/api/v1/tickets/**
-
+            - id : product-service
+              uri: ${PRODUCT_SERVICE_URL:http://product-service:8085}
+              predicates:
+                - Path=/api/v1/products/**
 server:
   port: 8000
 

@@ -7,6 +7,7 @@ import org.example.authservice.application.command.LoginCommand;
 import org.example.authservice.application.repository.AccountCredentialRepository;
 import org.example.authservice.application.repository.AuthTokenRepository;
 import org.example.authservice.application.usecase.LoginUseCase;
+import org.example.authservice.domain.constant.AccountStatus;
 import org.example.authservice.domain.exception.UnauthorizedException;
 import org.example.authservice.domain.model.AccountCredential;
 import org.example.authservice.domain.model.AuthToken;
@@ -32,6 +33,14 @@ public class LoginService implements LoginUseCase{
 
         if(accountCredential == null || !passwordEncoder.matches(loginCommand.password(), accountCredential.getPassword())){
             throw new UnauthorizedException("invalid username or password");
+        }
+
+        if(accountCredential.getStatus() == AccountStatus.BLOCKED){
+            throw new UnauthorizedException("Account is blocked. Please contact support.");
+        }
+
+        if(accountCredential.getStatus() == AccountStatus.CLOSED){
+            throw new UnauthorizedException("Account is closed. Please contact support.");
         }
 
         return saveToken(accountCredential);

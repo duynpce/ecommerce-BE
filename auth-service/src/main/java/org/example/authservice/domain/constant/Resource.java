@@ -9,4 +9,7 @@ public enum Resource {
     EXPORT,
     PROMOTE,
     TICKET,
+    TRANSACTION,
+    PROFILE,
+    SHOP
 }

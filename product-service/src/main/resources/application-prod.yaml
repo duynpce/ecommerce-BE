@@ -2,10 +2,9 @@ spring:
   application:
     name: product-service
 
-  data:
-    mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/product_db}
 
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb://mongo:27018/product_db}
 
   security:
     oauth2:
@@ -20,7 +19,10 @@ server:
 
 gcp:
   bucket-name: ${GCP_BUCKET_NAME:my-product-img}
-  config-path: ${GCP_CONFIG_PATH}`
+  config-path: ${GCP_CONFIG_PATH}
 
 jwt:
   access-secret: ${JWT_ACCESS_SECRET}
+
+app:
+  ticket-service-url: ${TICKET_SERVICE_URL:http://ticket-service:8083}

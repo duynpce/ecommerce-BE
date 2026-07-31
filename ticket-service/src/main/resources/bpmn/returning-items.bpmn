@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_19fjjgi" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.48.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.24.0">
+  <bpmn:process id="returning-items-procedure" name="returning items procedure" isExecutable="true">
+    <bpmn:startEvent id="ReturnStart" name="return initiated">
+      <bpmn:outgoing>Flow_1hjwxdv</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:intermediateCatchEvent id="ReturnMockDelivery" name="mock return transit">
+      <bpmn:documentation>Simulates the time for the product to travel back to the contributor.</bpmn:documentation>
+      <bpmn:incoming>Flow_1hjwxdv</bpmn:incoming>
+      <bpmn:incoming>Flow_1qtny0r</bpmn:incoming>
+      <bpmn:outgoing>Flow_1l7m500</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_ReturnMock">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:userTask id="ReturnConfirm" name="confirm product received back" camunda:assignee="contributor of the product">
+      <bpmn:documentation>Contributor confirms that the returned product has physically arrived. No return choice available at this step.</bpmn:documentation>
+      <bpmn:incoming>Flow_1l7m500</bpmn:incoming>
+      <bpmn:outgoing>Flow_1rsxwv4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_1ujpt6r">
+      <bpmn:incoming>Flow_1rsxwv4</bpmn:incoming>
+      <bpmn:outgoing>Flow_1nre2tr</bpmn:outgoing>
+      <bpmn:outgoing>Flow_06ww3ap</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1m0dg0q</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="returned-product-recieved" name="product received" camunda:delegateExpression="${returnProductReceivedDelegate}">
+      <bpmn:documentation>Marks the return process as fully completed.</bpmn:documentation>
+      <bpmn:incoming>Flow_1nre2tr</bpmn:incoming>
+      <bpmn:outgoing>Flow_13jcj61</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="returned-product-not-recieved" name="product not recieved" camunda:delegateExpression="${returnProductNotReceivedDelegate}">
+      <bpmn:incoming>Flow_06ww3ap</bpmn:incoming>
+      <bpmn:outgoing>Flow_1qtny0r</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="ReturnEnd" name="return completed">
+      <bpmn:incoming>Flow_13jcj61</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1hjwxdv" sourceRef="ReturnStart" targetRef="ReturnMockDelivery" />
+    <bpmn:sequenceFlow id="Flow_1l7m500" sourceRef="ReturnMockDelivery" targetRef="ReturnConfirm" />
+    <bpmn:sequenceFlow id="Flow_1rsxwv4" sourceRef="ReturnConfirm" targetRef="Gateway_1ujpt6r" />
+    <bpmn:endEvent id="Event_0y0pq24" name="return failed">
+      <bpmn:incoming>Flow_0p5wjr8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1nre2tr" sourceRef="Gateway_1ujpt6r" targetRef="returned-product-recieved">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status  == "RECEIVED" }</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_06ww3ap" sourceRef="Gateway_1ujpt6r" targetRef="returned-product-not-recieved">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status  == "NOT_RECEIVED" &amp;&amp; retry &lt; 3 }</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1qtny0r" sourceRef="returned-product-not-recieved" targetRef="ReturnMockDelivery" />
+    <bpmn:sequenceFlow id="Flow_13jcj61" sourceRef="returned-product-recieved" targetRef="ReturnEnd" />
+    <bpmn:serviceTask id="product-return-failed" name="product return failed" camunda:delegateExpression="${returnProductFailedDelegate}">
+      <bpmn:incoming>Flow_1m0dg0q</bpmn:incoming>
+      <bpmn:outgoing>Flow_0p5wjr8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1m0dg0q" sourceRef="Gateway_1ujpt6r" targetRef="product-return-failed">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status  == "NOT_RECEIVED" &amp;&amp; retry &gt;= 3 }</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0p5wjr8" sourceRef="product-return-failed" targetRef="Event_0y0pq24" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="returning-items-procedure">
+      <bpmndi:BPMNShape id="ReturnStart_di" bpmnElement="ReturnStart">
+        <dc:Bounds x="172" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="155" y="265" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReturnMockDelivery_di" bpmnElement="ReturnMockDelivery">
+        <dc:Bounds x="292" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="281" y="265" width="59" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReturnConfirm_di" bpmnElement="ReturnConfirm">
+        <dc:Bounds x="420" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1ujpt6r_di" bpmnElement="Gateway_1ujpt6r" isMarkerVisible="true">
+        <dc:Bounds x="595" y="215" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReturnSetStatus_di" bpmnElement="returned-product-recieved">
+        <dc:Bounds x="750" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_180sl6b_di" bpmnElement="returned-product-not-recieved">
+        <dc:Bounds x="750" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReturnEnd_di" bpmnElement="ReturnEnd">
+        <dc:Bounds x="932" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="909" y="265" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0y0pq24_di" bpmnElement="Event_0y0pq24">
+        <dc:Bounds x="932" y="332" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="921" y="375" width="59" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1taq6v8_di" bpmnElement="product-return-failed">
+        <dc:Bounds x="750" y="310" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1hjwxdv_di" bpmnElement="Flow_1hjwxdv">
+        <di:waypoint x="208" y="240" />
+        <di:waypoint x="292" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1l7m500_di" bpmnElement="Flow_1l7m500">
+        <di:waypoint x="328" y="240" />
+        <di:waypoint x="420" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1rsxwv4_di" bpmnElement="Flow_1rsxwv4">
+        <di:waypoint x="520" y="240" />
+        <di:waypoint x="595" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1nre2tr_di" bpmnElement="Flow_1nre2tr">
+        <di:waypoint x="645" y="240" />
+        <di:waypoint x="750" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06ww3ap_di" bpmnElement="Flow_06ww3ap">
+        <di:waypoint x="620" y="215" />
+        <di:waypoint x="620" y="120" />
+        <di:waypoint x="750" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1qtny0r_di" bpmnElement="Flow_1qtny0r">
+        <di:waypoint x="750" y="80" />
+        <di:waypoint x="310" y="80" />
+        <di:waypoint x="310" y="222" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13jcj61_di" bpmnElement="Flow_13jcj61">
+        <di:waypoint x="850" y="240" />
+        <di:waypoint x="932" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1m0dg0q_di" bpmnElement="Flow_1m0dg0q">
+        <di:waypoint x="620" y="265" />
+        <di:waypoint x="620" y="350" />
+        <di:waypoint x="750" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0p5wjr8_di" bpmnElement="Flow_0p5wjr8">
+        <di:waypoint x="850" y="350" />
+        <di:waypoint x="932" y="350" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

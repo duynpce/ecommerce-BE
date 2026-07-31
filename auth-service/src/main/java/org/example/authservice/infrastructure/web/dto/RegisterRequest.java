@@ -2,7 +2,7 @@ package org.example.authservice.infrastructure.web.dto;
 
 import jakarta.validation.constraints.*;
 import org.example.authservice.domain.constant.Gender;
-import org.springframework.validation.annotation.Validated;
+
 public record RegisterRequest(
 
     @NotBlank

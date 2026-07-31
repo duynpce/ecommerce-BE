@@ -18,7 +18,5 @@ public interface PromotionTicketRepository {
 
     boolean existsByBankAccountNumber(String bankAccountNumber);
 
-    boolean existsByShopName(String shopName);
-
     boolean existsByTaxId(String taxId);
 }

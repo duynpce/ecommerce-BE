@@ -6,10 +6,10 @@ import org.example.productservice.application.criteria.ProductSearchCriteria;
 import org.example.productservice.application.mapper.ProductMapper;
 import org.example.productservice.domain.model.Product;
 import org.example.productservice.infrastructure.web.data.entity.ProductEntity;
-import org.example.productservice.infrastructure.web.dto.CreateProductRequest;
-import org.example.productservice.infrastructure.web.dto.ProductFilter;
-import org.example.productservice.infrastructure.web.dto.ProductResponse;
-import org.example.productservice.infrastructure.web.dto.UpdateProductRequest;
+import org.example.productservice.infrastructure.web.dto.product.CreateProductRequest;
+import org.example.productservice.infrastructure.web.dto.product.ProductFilter;
+import org.example.productservice.infrastructure.web.dto.product.ProductResponse;
+import org.example.productservice.infrastructure.web.dto.product.UpdateProductRequest;
 import org.mapstruct.*;
 
 import java.time.Instant;

@@ -6,7 +6,9 @@ import org.example.authservice.application.client.KeycloakClient;
 import org.example.authservice.application.client.TokenGeneratorClient;
 import org.example.authservice.application.command.CreateKeycloakUserCommand;
 import org.example.authservice.application.command.KeycloakTokenCommand;
+import org.example.authservice.application.command.ResetKeycloakPasswordCommand;
 import org.example.authservice.application.command.UpdateKeycloakUserCommand;
+import org.example.authservice.infrastructure.keycloak.dto.KeycloakCredentialRepresentation;
 import org.example.authservice.infrastructure.keycloak.dto.KeycloakUserRepresentation;
 import org.example.authservice.infrastructure.prop.KeycloakProperties;
 import org.example.authservice.infrastructure.keycloak.httpclient.KeycloakHttpClient;
@@ -96,7 +98,8 @@ public class KeycloakAdapter implements KeycloakClient {
         String adminToken = loginAdmin();
 
         KeycloakUserRepresentation user = KeycloakUserRepresentation.builder()
-                .email(command.email())
+                .username(command.username())
+                .email(null)
                 .credentials(List.of(
                         KeycloakUserRepresentation.CredentialRepresentation.builder()
                                 .value(command.password())
@@ -112,6 +115,26 @@ public class KeycloakAdapter implements KeycloakClient {
                 user
         );
     }
+
+    @Override
+    public void resetPassword(ResetKeycloakPasswordCommand command) {
+        String adminToken = loginAdmin();
+
+        KeycloakCredentialRepresentation credential = KeycloakCredentialRepresentation.builder()
+                .value(command.newPassword())
+                .temporary(command.temporary())
+                .build();
+
+        keycloakHttpClient.resetPassword(
+                props.getRealm(),
+                command.keycloakUserId().toString(),
+                "Bearer " + adminToken,
+                credential
+        );
+
+        log.debug("Password reset via Keycloak Admin API for user: {}", command.keycloakUserId());
+    }
+
 
     private String loginAdmin() {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();

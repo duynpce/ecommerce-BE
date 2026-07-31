@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process-application
+        xmlns="http://www.camunda.org/schema/1.0/ProcessApplication"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <process-archive>
+        <resource>bpmn/buying-items-procedure.bpmn</resource>
+        <resource>bpmn/promote-customer-contributor-procedure.bpmn</resource>
+        <resource>bpmn/returning-items.bpmn</resource>
+        <properties>
+            <property name="isDeleteUponUndeploy">false</property>
+            <property name="isScanForProcessDefinitions">false</property>
+        </properties>
+    </process-archive>
+
+</process-application>

@@ -22,7 +22,7 @@ import java.util.function.Function;
 public class JwtTokenAdapter implements TokenGeneratorClient {
 
     private static final String CLAIM_USER_ID = "userId";
-    private static final String CLAIM_AUTHORITIES = "permiss";
+    private static final String CLAIM_AUTHORITIES = "permissions";
 
     private final JwtProperties jwtProperties;
 
@@ -38,6 +38,10 @@ public class JwtTokenAdapter implements TokenGeneratorClient {
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        if(token == null) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(getAccessKey())

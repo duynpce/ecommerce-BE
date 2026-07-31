@@ -5,10 +5,10 @@ import org.example.productservice.application.command.UpdateTransactionCommand;
 import org.example.productservice.application.criteria.TransactionSearchCriteria;
 import org.example.productservice.domain.model.Transaction;
 import org.example.productservice.infrastructure.web.data.entity.TransactionEntity;
-import org.example.productservice.infrastructure.web.dto.CreateTransactionRequest;
-import org.example.productservice.infrastructure.web.dto.TransactionFilter;
-import org.example.productservice.infrastructure.web.dto.TransactionResponse;
-import org.example.productservice.infrastructure.web.dto.UpdateTransactionRequest;
+import org.example.productservice.infrastructure.web.dto.transaction.CreateTransactionRequest;
+import org.example.productservice.infrastructure.web.dto.transaction.TransactionFilter;
+import org.example.productservice.infrastructure.web.dto.transaction.TransactionResponse;
+import org.example.productservice.infrastructure.web.dto.transaction.UpdateTransactionRequest;
 
 import java.util.UUID;
 
@@ -23,6 +23,8 @@ public interface TransactionMapper {
 
     // userId null → READ_ALL (no user restriction); userId set → READ_SELF
     TransactionSearchCriteria toCriteria(TransactionFilter filter, UUID userId);
+
+    TransactionSearchCriteria toContributorCriteria(TransactionFilter filter, UUID contributorId);
 
     TransactionResponse toResponse(Transaction transaction);
 }

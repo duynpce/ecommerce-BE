@@ -3,24 +3,31 @@ package org.example.productservice.domain.model;
 import org.example.productservice.domain.constant.ProductCategory;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class Product {
     private UUID id;
+    private UUID shopId;
     private UUID contributorId;
-    private String url;
+    private List<String> imgUrls;
     private String name;
+    private String description;
     private BigDecimal price;
     private Integer quantity;
     private ProductCategory category;
     private Map<String, String> attributes;
 
-    public Product(UUID id, UUID contributorId, String url, String name, BigDecimal price, Integer quantity, ProductCategory category, Map<String, String> attributes) {
+    public Product(UUID id, UUID shopId, UUID contributorId, List<String> imgUrls, String name,
+                   String description, BigDecimal price, Integer quantity,
+                   ProductCategory category, Map<String, String> attributes) {
         this.id = id;
+        this.shopId = shopId;
         this.contributorId = contributorId;
-        this.url = url;
+        this.imgUrls = imgUrls;
         this.name = name;
+        this.description = description;
         this.price = price;
         this.quantity = quantity;
         this.category = category;
@@ -38,6 +45,14 @@ public class Product {
         this.id = id;
     }
 
+    public UUID getShopId() {
+        return shopId;
+    }
+
+    public void setShopId(UUID shopId) {
+        this.shopId = shopId;
+    }
+
     public UUID getContributorId() {
         return contributorId;
     }
@@ -46,24 +61,31 @@ public class Product {
         this.contributorId = contributorId;
     }
 
-    public String getUrl() {
-        return url;
+    public List<String> getImgUrls() {
+        return imgUrls;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setImgUrls(List<String> imgUrls) {
+        this.imgUrls = imgUrls;
     }
 
     public String getName() {
-
         return name;
     }
 
     public void setName(String name) {
-        if(name == null || name.trim().isEmpty()) {
+        if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Product name cannot be null or empty");
         }
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public BigDecimal getPrice() {
@@ -71,7 +93,7 @@ public class Product {
     }
 
     public void setPrice(BigDecimal price) {
-        if(price == null || price.compareTo(BigDecimal.ZERO) < 0) {
+        if (price == null || price.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Price cannot be null or negative");
         }
         this.price = price;
@@ -82,7 +104,7 @@ public class Product {
     }
 
     public void setQuantity(Integer quantity) {
-        if(quantity == null || quantity < 0) {
+        if (quantity == null || quantity < 0) {
             throw new IllegalArgumentException("Quantity cannot be null or negative");
         }
         this.quantity = quantity;
@@ -108,4 +130,3 @@ public class Product {
         return price.multiply(BigDecimal.valueOf(quantity));
     }
 }
-
