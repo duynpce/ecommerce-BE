@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_11zc6qf" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.48.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.21.0">
-  <bpmn:process id="Process_0fsfzgs" name="buying items procedure" isExecutable="true">
+  <bpmn:process id="buying-items-procedure" name="buying items procedure" isExecutable="true">
     <bpmn:documentation>transaction status is delivering</bpmn:documentation>
     <bpmn:startEvent id="StartEvent_1" name="buy a product">
       <bpmn:documentation>transaction status is pending</bpmn:documentation>
@@ -18,7 +18,7 @@
       <bpmn:outgoing>Flow_1us7y2w</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_0gqte6r" sourceRef="confirm-the-transaction" targetRef="Gateway_13ykcro" />
-    <bpmn:serviceTask id="Activity_1i64x9m" name="transaction confirmed" camunda:delegateExpression="${transactionConfirmedDelegate}">
+    <bpmn:serviceTask id="Activity_1i64x9m" name="transaction confirmed" camunda:delegateExpression="${transactionApprovedDelegate}">
       <bpmn:documentation>transaction status is packing</bpmn:documentation>
       <bpmn:incoming>Flow_0r59t24</bpmn:incoming>
       <bpmn:outgoing>Flow_0gpfkai</bpmn:outgoing>
@@ -49,7 +49,7 @@
       <bpmn:incoming>Flow_0dv5dix</bpmn:incoming>
       <bpmn:outgoing>Flow_0qro8j6</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_1aulqng">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30S</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT15S</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:sequenceFlow id="Flow_0s3pys2" sourceRef="delivered-to-transportation-confirmation" targetRef="mock-delivery-process" />
@@ -88,7 +88,7 @@ if they are not sastified with the product they can return it at this step</bpmn
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status == "RECEIVED"}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_0qynngk" name="status is returned or retry &#62;= 3" sourceRef="Gateway_17zsqkh" targetRef="product-returned">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status = "RETURNED" || retry &gt;= 3}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status == "RETURNED" || retry &gt;= 3}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:endEvent id="Event_0psd029" name="transaction complete">
       <bpmn:incoming>Flow_1i558j6</bpmn:incoming>
@@ -99,18 +99,17 @@ if they are not sastified with the product they can return it at this step</bpmn
       <bpmn:incoming>Flow_1jth92o</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_1jth92o" sourceRef="product-returned" targetRef="Event_1hd9vqw" />
-    <bpmn:callActivity id="product-returned" name="product returned" calledElement="returning-products">
+    <bpmn:callActivity id="product-returned" name="product returned" calledElement="returning-items-procedure">
       <bpmn:documentation>activate returning process for contributor to received their returned products</bpmn:documentation>
       <bpmn:extensionElements>
         <camunda:in variables="all" />
-        <camunda:in businessKey="#{execution.processBusinessKey}" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0qynngk</bpmn:incoming>
       <bpmn:outgoing>Flow_1jth92o</bpmn:outgoing>
     </bpmn:callActivity>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_0fsfzgs">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="buying-items-procedure">
       <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
         <dc:Bounds x="182" y="292" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -159,6 +158,10 @@ if they are not sastified with the product they can return it at this step</bpmn
       <bpmndi:BPMNShape id="Gateway_17zsqkh_di" bpmnElement="Gateway_17zsqkh" isMarkerVisible="true">
         <dc:Bounds x="1275" y="205" width="50" height="50" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_05354wb_di" bpmnElement="product-not-received">
+        <dc:Bounds x="1250" y="40" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0ajy57v_di" bpmnElement="product-received">
         <dc:Bounds x="1430" y="190" width="100" height="80" />
         <bpmndi:BPMNLabel />
@@ -168,10 +171,6 @@ if they are not sastified with the product they can return it at this step</bpmn
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1654" y="255" width="66" height="27" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_05354wb_di" bpmnElement="product-not-received">
-        <dc:Bounds x="1250" y="40" width="100" height="80" />
-        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1hd9vqw_di" bpmnElement="Event_1hd9vqw">
         <dc:Bounds x="1582" y="322" width="36" height="36" />
@@ -233,7 +232,7 @@ if they are not sastified with the product they can return it at this step</bpmn
         <di:waypoint x="1300" y="205" />
         <di:waypoint x="1300" y="120" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1315" y="152.5" width="115" height="27" />
+          <dc:Bounds x="1325" y="153" width="100" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_11399hj_di" bpmnElement="Flow_11399hj">
@@ -248,7 +247,7 @@ if they are not sastified with the product they can return it at this step</bpmn
         <di:waypoint x="1300" y="340" />
         <di:waypoint x="1400" y="340" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1307" y="295.5" width="85" height="27" />
+          <dc:Bounds x="1307" y="296" width="85" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1i558j6_di" bpmnElement="Flow_1i558j6">

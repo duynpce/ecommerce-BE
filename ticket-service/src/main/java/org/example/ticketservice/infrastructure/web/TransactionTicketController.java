@@ -2,6 +2,7 @@ package org.example.ticketservice.infrastructure.web;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.ticketservice.application.client.TokenGeneratorClient;
 import org.example.ticketservice.application.usecase.ConfirmDeliveryUseCase;
 import org.example.ticketservice.application.usecase.ConfirmReturnUseCase;
@@ -31,6 +32,7 @@ import java.util.UUID;
  *  4. Buyer  → POST   /transaction-tickets/{id}/delivery           (RECEIVED | NOT_RECEIVED | RETURNED)
  *  5. Contrib → POST  /transaction-tickets/{id}/confirm-return     (confirm return received back)
  */
+@Slf4j
 @RestController
 @RequestMapping("/transaction-tickets")
 @RequiredArgsConstructor
@@ -41,7 +43,6 @@ public class TransactionTicketController {
     private final ConfirmShippedUseCase        confirmShippedUseCase;
     private final ConfirmDeliveryUseCase       confirmDeliveryUseCase;
     private final ConfirmReturnUseCase         confirmReturnUseCase;
-    private final TokenGeneratorClient         tokenGeneratorClient;
 
 
     /**
@@ -50,15 +51,16 @@ public class TransactionTicketController {
      * Requires: TRANSACTION:CREATE_SELF
      */
     @PostMapping("/start")
-    @PreAuthorize("hasAuthority('TRANSACTION:CREATE_SELF')")
     public ResponseEntity<ResponseDto<Void>> start(
-            @Valid @RequestBody StartBuyingProcedureRequest request,
-            @CookieValue(value = "accessToken", required = false) String accessToken) {
+            @Valid @RequestBody StartBuyingProcedureRequest request
+          ) {
+        log.info("Starting buying-items-procedure: transactionId={}, contributorId={}, customerId={}", request.transactionId(), request.contributorId(), request.customerId());
 
         startBuyingProcedureUseCase.start(
                 request.transactionId(),
                 request.contributorId(),
                 request.customerId()
+
         );
 
         return ResponseEntity
@@ -72,7 +74,7 @@ public class TransactionTicketController {
      * Requires: TRANSACTION:UPDATE_SELF (contributor role)
      */
     @PostMapping("/{transactionId}/confirm")
-    @PreAuthorize("hasAuthority('TRANSACTION:UPDATE_SELF')")
+    @PreAuthorize("hasAuthority('TRANSACTION:WRITE_SELF')")
     public ResponseEntity<ResponseDto<Void>> confirmTransaction(
             @PathVariable UUID transactionId,
             @Valid @RequestBody ConfirmTransactionRequest request) {
@@ -90,10 +92,10 @@ public class TransactionTicketController {
      * Step 3 — Contributor confirms the product was handed to the transportation agency.
      * Completes the "delivered-to-transportation-confirmation" user task,
      * then the 30-second mock-delivery timer starts automatically.
-     * Requires: TRANSACTION:UPDATE_SELF (contributor role)
+     * Requires: TRANSACTION:WRITE_SELF (contributor role)
      */
     @PostMapping("/{transactionId}/shipped")
-    @PreAuthorize("hasAuthority('TRANSACTION:UPDATE_SELF')")
+    @PreAuthorize("hasAuthority('TRANSACTION:WRITE_SELF')")
     public ResponseEntity<ResponseDto<Void>> confirmShipped(
             @PathVariable UUID transactionId) {
 
@@ -126,10 +128,10 @@ public class TransactionTicketController {
     /**
      * Step 5 — Contributor confirms whether the returned product was received back.
      * Completes the "ReturnConfirm" user task in the returning-products Camunda process.
-     * Requires: TRANSACTION:UPDATE_SELF (contributor role)
+     * Requires: TRANSACTION:WRITE_SELF (contributor role)
      */
-    @PostMapping("/{transactionId}/confirm-return")
-    @PreAuthorize("hasAuthority('TRANSACTION:UPDATE_SELF')")
+        @PostMapping("/{transactionId}/confirm-return")
+    @PreAuthorize("hasAuthority('TRANSACTION:WRITE_SELF')")
     public ResponseEntity<ResponseDto<Void>> confirmReturn(
             @PathVariable UUID transactionId,
             @Valid @RequestBody ConfirmReturnRequest request) {

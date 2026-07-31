@@ -10,9 +10,10 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 /**
- * Service task: "product received" (ReturnSetStatus in returning-products process)
- * Fires when contributor confirms the returned product was received.
- * Calls product-service to mark status RETURNED and add the product's quantity back to stock.
+ * Service task: "product received" (ReturnSetStatus in returning-products process).
+ * Fires when contributor confirms the returned product was received back.
+ * Transitions transaction: DELIVERED → RETURNED in product-service.
+ * Product-service also restores product stock on return.
  */
 @Slf4j
 @Component("returnProductReceivedDelegate")
@@ -27,6 +28,6 @@ public class ReturnProductReceivedDelegate implements JavaDelegate {
 
         productClient.returnTransaction(transactionId);
 
-        log.info("[returning-products] Return process completed and stock restored for transactionId={}", transactionId);
+        log.info("[returning-products] Return completed and stock restored: transactionId={}", transactionId);
     }
 }

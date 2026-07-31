@@ -33,8 +33,6 @@ public class ProductNotReceivedDelegate implements JavaDelegate {
         if (retry == null) retry = 0;
         execution.setVariable("retry", retry + 1);
 
-        productClient.updateTransactionStatus(transactionId, TransactionStatus.NOT_RECEIVED);
-
         log.info("[buying-items] Product not received (retry={}): transactionId={}", retry + 1, transactionId);
     }
 }

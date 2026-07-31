@@ -15,11 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StartBuyingProcedureService implements StartBuyingProcedureUseCase {
 
-    /**
-     * Process key defined in buying-items-procedure.bpmn
-     * (bpmn:process id="Process_0fsfzgs")
-     */
-    private static final String PROCESS_KEY = "Process_0fsfzgs";
+    private static final String PROCESS_KEY = "buying-items-procedure";
 
     private final RuntimeService runtimeService;
 

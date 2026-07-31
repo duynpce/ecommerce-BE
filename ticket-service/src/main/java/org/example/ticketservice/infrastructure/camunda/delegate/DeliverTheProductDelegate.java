@@ -5,15 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.example.ticketservice.application.client.ProductClient;
-import org.example.ticketservice.domain.constant.TransactionStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 /**
- * Service task: "deliver the product." (deliver-the-product)
- * Fires after the 30-second mock delivery timer.
- * Updates transaction status → DELIVERING in product-service.
+ * Service task: "deliver the product" (deliver-the-product).
+ * Fires automatically after the 30-second mock-delivery timer expires.
+ * Transitions transaction: APPROVED → DELIVERED in product-service.
  */
 @Slf4j
 @Component("deliverTheProductDelegate")
@@ -26,8 +25,8 @@ public class DeliverTheProductDelegate implements JavaDelegate {
     public void execute(DelegateExecution execution) {
         UUID transactionId = UUID.fromString((String) execution.getVariable("transactionId"));
 
-        productClient.updateTransactionStatus(transactionId, TransactionStatus.DELIVERING);
+        productClient.deliver(transactionId);
 
-        log.info("[buying-items] Product in transit (DELIVERING): transactionId={}", transactionId);
+        log.info("[buying-items] Product in transit (DELIVERED): transactionId={}", transactionId);
     }
 }

@@ -29,7 +29,7 @@ public class ConfirmReturnService implements ConfirmReturnUseCase {
                     "No pending return confirmation task found for transactionId: " + transactionId);
         }
 
-        taskService.complete(task.getId(), Map.of("received", received));
+        taskService.complete(task.getId(), Map.of("status", received ? "RECEIVED" : "NOT_RECEIVED"));
 
         log.info("[returning-products] Contributor confirmed return received={}: transactionId={}",
                 received, transactionId);

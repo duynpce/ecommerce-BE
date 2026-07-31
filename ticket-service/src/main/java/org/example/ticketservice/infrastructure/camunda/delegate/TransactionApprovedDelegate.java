@@ -5,20 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.example.ticketservice.application.client.ProductClient;
-import org.example.ticketservice.domain.constant.TransactionStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 /**
- * Service task: "transaction confirmed" (Activity_1i64x9m)
- * Fires when contributor approves the transaction.
- * Updates transaction status → PACKING in product-service.
+ * Service task: fires on the "approved" branch after the contributor completes
+ * the "confirm-the-transaction" user task with approve = true.
+ * Transitions transaction: PENDING → PACKING in product-service.
  */
 @Slf4j
-@Component("transactionConfirmedDelegate")
+@Component("transactionApprovedDelegate")
 @RequiredArgsConstructor
-public class TransactionConfirmedDelegate implements JavaDelegate {
+public class TransactionApprovedDelegate implements JavaDelegate {
 
     private final ProductClient productClient;
 
@@ -26,8 +25,8 @@ public class TransactionConfirmedDelegate implements JavaDelegate {
     public void execute(DelegateExecution execution) {
         UUID transactionId = UUID.fromString((String) execution.getVariable("transactionId"));
 
-        productClient.updateTransactionStatus(transactionId, TransactionStatus.PACKING);
+        productClient.approve(transactionId);
 
-        log.info("[buying-items] Transaction confirmed (PACKING): transactionId={}", transactionId);
+        log.info("[buying-items] Transaction approved: transactionId={}", transactionId);
     }
 }

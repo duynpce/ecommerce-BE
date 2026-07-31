@@ -2,7 +2,6 @@ package org.example.ticketservice.infrastructure.product;
 
 import lombok.RequiredArgsConstructor;
 import org.example.ticketservice.application.client.ProductClient;
-import org.example.ticketservice.domain.constant.TransactionStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -18,8 +17,23 @@ public class ProductClientAdapter implements ProductClient {
     private final ProductHttpClient productHttpClient;
 
     @Override
-    public void updateTransactionStatus(UUID transactionId, TransactionStatus status) {
-        productHttpClient.updateTransactionStatus(transactionId, new UpdateTransactionStatusRequest(status));
+    public void approve(UUID transactionId) {
+        productHttpClient.approve(transactionId);
+    }
+
+    @Override
+    public void reject(UUID transactionId) {
+        productHttpClient.reject(transactionId);
+    }
+
+    @Override
+    public void deliver(UUID transactionId) {
+        productHttpClient.deliver(transactionId);
+    }
+
+    @Override
+    public void complete(UUID transactionId) {
+        productHttpClient.complete(transactionId);
     }
 
     @Override
@@ -27,4 +41,3 @@ public class ProductClientAdapter implements ProductClient {
         productHttpClient.returnTransaction(transactionId);
     }
 }
-

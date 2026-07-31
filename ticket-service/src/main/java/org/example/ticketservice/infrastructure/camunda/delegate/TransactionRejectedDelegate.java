@@ -5,15 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.example.ticketservice.application.client.ProductClient;
-import org.example.ticketservice.domain.constant.TransactionStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 /**
- * Service task: "transaction rejected" (transaction-rejected)
- * Fires when contributor rejects the transaction.
- * Updates transaction status → REJECTED in product-service.
+ * Service task: fires on the "rejected" branch after the contributor completes
+ * the "confirm-the-transaction" user task with approve = false.
+ * Transitions transaction: PENDING → REJECTED in product-service.
+ * Product-service also restores reserved stock on rejection.
  */
 @Slf4j
 @Component("transactionRejectedDelegate")
@@ -26,8 +26,8 @@ public class TransactionRejectedDelegate implements JavaDelegate {
     public void execute(DelegateExecution execution) {
         UUID transactionId = UUID.fromString((String) execution.getVariable("transactionId"));
 
-        productClient.updateTransactionStatus(transactionId, TransactionStatus.REJECTED);
+        productClient.reject(transactionId);
 
-        log.info("[buying-items] Transaction rejected: transactionId={}", transactionId);
+        log.info("[buying-items] Transaction rejected and stock restored: transactionId={}", transactionId);
     }
 }
