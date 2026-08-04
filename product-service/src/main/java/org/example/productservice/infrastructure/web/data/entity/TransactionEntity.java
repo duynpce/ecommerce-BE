@@ -1,15 +1,13 @@
 package org.example.productservice.infrastructure.web.data.entity;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.example.productservice.domain.constant.TransactionStatus;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.UUID;
 
 @Document(collection = "transactions")
@@ -17,7 +15,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class TransactionEntity extends BaseEntity {
 
     @Id

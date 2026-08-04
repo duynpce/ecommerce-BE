@@ -89,6 +89,11 @@ public class Transaction {
     }
 
     public void setTotalAmount(BigDecimal totalAmount) {
+        if(totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) == 0)
+        {
+            throw new IllegalArgumentException("Total amount must be a positive value");
+        }
+
         this.totalAmount = totalAmount;
     }
 

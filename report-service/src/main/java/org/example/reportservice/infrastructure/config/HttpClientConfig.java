@@ -10,6 +10,7 @@ import io.netty.channel.ChannelOption;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.reportservice.domain.exception.ExternalServiceException;
+import org.example.reportservice.infrastructure.product.httpclient.ProductHttpClient;
 import org.example.reportservice.infrastructure.prop.AppProperties;
 import org.example.reportservice.infrastructure.user.httpclient.UserHttpClient;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,13 @@ public class HttpClientConfig {
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
     private static final Duration RESPONSE_TIMEOUT = Duration.ofSeconds(10);
     private static final String ACCESS_TOKEN_COOKIE = "accessToken";
+
+
+    @Bean
+    public ProductHttpClient getProductHttpClient(AppProperties appProperties, UserHttpClient userHttpClient) {
+        return createHttpClient(appProperties.getProductServiceUrl(), ProductHttpClient.class);
+    }
+
 
     @Bean
     public UserHttpClient userHttpClient(AppProperties props) {

@@ -17,7 +17,6 @@ public final class TransactionSpecification {
         // READ_SELF: restrict to transactions where the user is either seller or buyer
         if (criteria.userId() != null) {
             criteriaList.add(new Criteria().orOperator(
-                    Criteria.where("contributorId").is(criteria.userId()),
                     Criteria.where("customerId").is(criteria.userId())
             ));
         }

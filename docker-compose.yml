@@ -143,6 +143,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=myuser
       - SPRING_DATASOURCE_PASSWORD=secret
       - USER_SERVICE_URL=http://user-service:8081
+      - PRODUCT_SERVICE_URL=http://product-service:8085
       - JWT_ACCESS_SECRET=bXktYWNjZXNzLXNlY3JldC1rZXktZm9yLXNob3BwaW5nLWFwcC0yNTY=
     ports:
       - "8082:8082"

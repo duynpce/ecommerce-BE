@@ -19,6 +19,7 @@ import org.example.productservice.infrastructure.ticket.dto.StartBuyingProcedure
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -44,6 +45,8 @@ public class TransactionService implements TransactionUseCase {
         transaction.setContributorId(product.getContributorId());
         transaction.setCustomerId(command.customerId());
         transaction.setStatus(TransactionStatus.PENDING);
+        transaction.setTotalAmount(transaction.calculateTotal());
+        transaction.setCreatedAt(Instant.now());
 
         product.setQuantity(product.getQuantity() - command.quantity());
         productRepository.save(product);

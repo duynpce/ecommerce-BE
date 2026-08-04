@@ -1,4 +1,4 @@
-package org.example.reportservice.infrastructure.web.dto;
+package org.example.reportservice.infrastructure.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

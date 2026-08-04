@@ -1,6 +1,7 @@
 package org.example.productservice.infrastructure.web.data.entity;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.example.productservice.domain.constant.ShopStatus;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class ShopEntity extends BaseEntity {
 
     @Id
