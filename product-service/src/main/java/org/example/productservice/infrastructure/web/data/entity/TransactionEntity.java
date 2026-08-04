@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.example.productservice.domain.constant.TransactionStatus;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -43,5 +44,8 @@ public class TransactionEntity extends BaseEntity {
 
     @Builder.Default
     private TransactionStatus status = TransactionStatus.PENDING;
+
+    @Transient
+    private ProductEntity product;
 
 }

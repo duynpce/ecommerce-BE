@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-public class Transaction {
+public class Transaction extends BaseModel {
     private UUID id;
     private UUID productId;
     private UUID contributorId;
@@ -16,11 +16,10 @@ public class Transaction {
     private BigDecimal totalAmount;
     private TransactionStatus status;
     private String description;
-    private Instant createdAt;
-    private Instant updatedAt;
 
-    public Transaction(UUID id, UUID productId, UUID contributorId, UUID customerId, Integer quantity, BigDecimal price, String description,
-            Instant createdAt, Instant updatedAt) {
+    private Product product;
+
+    public Transaction(UUID id, UUID productId, UUID contributorId, UUID customerId, Integer quantity, BigDecimal price, String description) {
         this.id = id;
         this.productId = productId;
         this.contributorId = contributorId;
@@ -28,8 +27,6 @@ public class Transaction {
         this.quantity = quantity;
         this.price = price;
         this.description = description;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
         this.totalAmount = calculateTotal();
     }
 
@@ -105,28 +102,20 @@ public class Transaction {
         this.description = description;
     }
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     public TransactionStatus getStatus() {
         return status;
     }
 
     public void setStatus(TransactionStatus status) {
         this.status = status;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     public BigDecimal calculateTotal() {

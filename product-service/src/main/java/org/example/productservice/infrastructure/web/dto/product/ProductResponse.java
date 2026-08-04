@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.productservice.domain.constant.ProductCategory;
+import org.example.productservice.domain.constant.ProductStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -25,4 +26,5 @@ public class ProductResponse {
     private Integer quantity;
     private ProductCategory category;
     private Map<String, String> attributes;
+    private ProductStatus status;
 }

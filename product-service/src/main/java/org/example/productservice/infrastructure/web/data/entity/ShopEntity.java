@@ -34,4 +34,32 @@ public class ShopEntity extends BaseEntity {
 
     @Builder.Default
     private ShopStatus status = ShopStatus.ACTIVE;
+
+    /** Cumulative average star rating across all shop products (0.0 – 5.0). */
+    @Builder.Default
+    private Double rating = 0.0;
+
+    /** Total number of units sold across all products in this shop. */
+    @Builder.Default
+    private Integer soldQuantity = 0;
+
+    /** Number of 1-star reviews. */
+    @Builder.Default
+    private Integer oneStarRatingCount = 0;
+
+    /** Number of 2-star reviews. */
+    @Builder.Default
+    private Integer twoStarRatingCount = 0;
+
+    /** Number of 3-star reviews. */
+    @Builder.Default
+    private Integer threeStarRatingCount = 0;
+
+    /** Number of 4-star reviews. */
+    @Builder.Default
+    private Integer fourStarRatingCount = 0;
+
+    /** Number of 5-star reviews. */
+    @Builder.Default
+    private Integer fiveStarRatingCount = 0;
 }
