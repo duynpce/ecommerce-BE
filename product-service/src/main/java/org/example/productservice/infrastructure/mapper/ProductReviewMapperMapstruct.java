@@ -12,16 +12,22 @@ import org.mapstruct.*;
 
 import java.util.UUID;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ProductMapperMapstruct.class, TransactionMapperMapStruct.class})
 public interface ProductReviewMapperMapstruct extends ProductReviewMapper {
 
     @Override
+    @Mapping(target = "product", source = "product")         // ProductMapperMapstruct.toDomain(ProductEntity) — includes nested shop
+    @Mapping(target = "transaction", source = "transaction")  // TransactionMapperMapStruct.toDomain(TransactionEntity) — includes nested product+shop
     ProductReview toDomain(ProductReviewEntity entity);
 
     @Override
+    @Mapping(target = "product",     ignore = true)
+    @Mapping(target = "transaction", ignore = true)
     ProductReview toDomain(CreateProductReviewCommand command);
 
     @Override
+    @Mapping(target = "product", ignore = true)      // @Transient — never persisted
+    @Mapping(target = "transaction", ignore = true)  // @Transient — never persisted
     ProductReviewEntity toEntity(ProductReview productReview);
 
     @Override

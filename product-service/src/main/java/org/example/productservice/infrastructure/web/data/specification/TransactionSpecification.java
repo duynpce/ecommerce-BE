@@ -26,7 +26,7 @@ public final class TransactionSpecification {
         }
 
         if (criteria.productId() != null) {
-            criteriaList.add(Criteria.where("productId").is(criteria.productId()));
+            criteriaList.add(Criteria.where("items.productId").is(criteria.productId()));
         }
 
         if (criteria.status() != null) {
@@ -50,6 +50,4 @@ public final class TransactionSpecification {
         }
         return query;
     }
-
-
 }

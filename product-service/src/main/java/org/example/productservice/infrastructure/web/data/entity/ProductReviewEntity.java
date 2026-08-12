@@ -32,15 +32,16 @@ public class ProductReviewEntity extends BaseEntity {
     @Indexed
     private UUID transactionId;
 
-    @Min(value = 0, message = "Rating must be between 0 and 5")
-    @Max(value = 5, message = "Rating must be between 0 and 5")
-    private Integer rating;   // 0–5
+    @Indexed
+    private UUID snapshotId;
+
+    @Min(value = 1, message = "Rating must be between 1 and 5")
+    @Max(value = 5, message = "Rating must be between 1 and 5")
+    private Integer rating;
 
     private String comment;
 
-    @Transient
     private ProductEntity product;
 
-    @Transient
     private TransactionEntity transaction;
 }

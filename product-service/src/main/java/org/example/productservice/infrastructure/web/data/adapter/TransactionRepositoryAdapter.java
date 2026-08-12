@@ -42,6 +42,8 @@ public class TransactionRepositoryAdapter implements TransactionRepository {
         return springDataRepo.findById(id).map(transactionMapper::toDomain);
     }
 
+
+
     @Override
     public List<Transaction> findByProductId(UUID productId) {
         return springDataRepo.findByProductId(productId).stream()
@@ -79,5 +81,10 @@ public class TransactionRepositoryAdapter implements TransactionRepository {
                 .toList();
 
         return PageCommand.of(transactions, totalCount, criteria.page(), criteria.limit());
+    }
+
+    @Override
+    public Optional<Transaction> findByIdWithProductAndShop(UUID id) {
+        return springDataRepo.findByIdWithProductAndShop(id).map(transactionMapper::toDomain);
     }
 }

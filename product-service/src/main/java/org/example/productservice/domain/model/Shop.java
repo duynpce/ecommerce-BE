@@ -80,6 +80,10 @@ public class Shop extends BaseModel {
 
     public Double getRating() { return rating; }
     public void setRating(Double rating) {
+        if(rating == null) {
+            throw new IllegalArgumentException("Rating cannot be null");
+        }
+
         if (rating != null && (rating < 0.0 || rating > 5.0)) {
             throw new IllegalArgumentException("Rating must be between 0.0 and 5.0");
         }
@@ -135,6 +139,17 @@ public class Shop extends BaseModel {
     }
 
     public void reCalculateRating(){
-        setRating(soldQuantity == 0 ? 0.0 : (double)(oneStarRatingCount + 2 * twoStarRatingCount + 3 * threeStarRatingCount + 4 * fourStarRatingCount + 5 * fiveStarRatingCount) / soldQuantity);
+        int ratingCount = oneStarRatingCount + twoStarRatingCount + threeStarRatingCount + fourStarRatingCount + fiveStarRatingCount;
+
+        setRating(ratingCount == 0 ? 0.0 :
+                (double)(oneStarRatingCount + 2 * twoStarRatingCount + 3 * threeStarRatingCount + 4 * fourStarRatingCount + 5 * fiveStarRatingCount)
+                / (double) ratingCount);
+    }
+
+    public void incrementSoldQuantity(int quantity) {
+        if (quantity < 0) {
+            throw new IllegalArgumentException("Quantity to increment cannot be negative");
+        }
+        this.soldQuantity += quantity;
     }
 }

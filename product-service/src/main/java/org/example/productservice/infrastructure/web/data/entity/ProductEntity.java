@@ -76,6 +76,5 @@ public class ProductEntity extends BaseEntity {
     @Builder.Default
     private Integer fiveStarRatingCount = 0;
 
-    @Transient
     private ShopEntity shop;
 }

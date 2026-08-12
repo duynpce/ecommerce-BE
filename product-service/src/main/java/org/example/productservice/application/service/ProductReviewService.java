@@ -8,12 +8,14 @@ import org.example.productservice.application.mapper.ProductReviewMapper;
 import org.example.productservice.application.repository.ProductRepository;
 import org.example.productservice.application.repository.ProductReviewRepository;
 import org.example.productservice.application.repository.ShopRepository;
+import org.example.productservice.application.repository.SubOrderRepository;
 import org.example.productservice.application.usecase.ProductReviewUseCase;
 import org.example.productservice.domain.exception.ForbiddenException;
 import org.example.productservice.domain.exception.NotFoundException;
 import org.example.productservice.domain.model.Product;
 import org.example.productservice.domain.model.ProductReview;
 import org.example.productservice.domain.model.Shop;
+import org.example.productservice.domain.model.SubOrder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,32 +31,54 @@ public class ProductReviewService implements ProductReviewUseCase {
     private final ProductRepository productRepository;
     private final ProductReviewMapper productReviewMapper;
     private final ShopRepository shopRepository;
+    private final SubOrderRepository subOrderRepository;
 
     @Override
     @Transactional
     public ProductReview create(CreateProductReviewCommand command) {
         log.info("Creating review for productId: {} by userId: {}", command.productId(), command.userId());
 
-        // Guard: product must exist
+        SubOrder subOrder = subOrderRepository.findByTransactionId(command.transactionId()).stream()
+                .filter(so -> so.getItems().stream().anyMatch(item -> item.getId().equals(command.snapshotId())))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Sub-order not found for transaction: " + command.transactionId() + " and snapshot: " + command.snapshotId()));
+
+        if (subOrder.getSnapshotDeliveredAt(command.snapshotId()) == null) {
+            throw new IllegalArgumentException(String.format("Snapshot %s has not been delivered for transaction %s", command.snapshotId(), command.transactionId()));
+        }
+
+        boolean productInSubOrder = subOrder.getItems().stream()
+                .anyMatch(item -> item.getProductId().equals(command.productId()));
+
+        if (!productInSubOrder) {
+            throw new IllegalArgumentException(String.format("Product %s is not part of sub-order %s", command.productId(), subOrder.getId()));
+        }
+
         Product product = productRepository.findByIdWithShop(command.productId())
                 .orElseThrow(() -> new NotFoundException("Product not found: " + command.productId()));
 
-        // Guard: one review per transaction
-        if (productReviewRepository.existsByUserIdAndTransactionId(command.userId(), command.transactionId())) {
-            throw new IllegalStateException("A review for this transaction already exists");
+        Shop shop = product.getShop();
+        if (shop == null) {
+            throw new NotFoundException("Shop not found for product: " + command.productId());
         }
+
+        if (Boolean.TRUE.equals(subOrder.getIsReviewedBySnapshotId(command.snapshotId()))) {
+            throw new IllegalArgumentException("Snapshot has already been reviewed: " + command.snapshotId());
+        }
+
+        subOrder.setIsReviewedBySnapshotId(command.snapshotId(), true);
+        subOrderRepository.save(subOrder);
 
         ProductReview review = productReviewMapper.toDomain(command);
         ProductReview saved = productReviewRepository.save(review);
 
-
-        // Update product star counts and recalculate average rating
         incrementStarCount(product, saved.getRating());
-        incrementStarCount(product.getShop(), saved.getRating());
         product.reCalculateRating();
-        product.getShop().reCalculateRating();
         productRepository.save(product);
-        shopRepository.save(product.getShop());
+
+        incrementStarCount(shop, saved.getRating());
+        shop.reCalculateRating();
+        shopRepository.save(shop);
 
         return saved;
     }
@@ -92,7 +116,7 @@ public class ProductReviewService implements ProductReviewUseCase {
 
         // Recalculate product star counts if rating changed
         if (command.rating() != null && command.rating() != oldRating) {
-            Product product = productRepository.findById(review.getProductId())
+            Product product = productRepository.findByIdWithShop(review.getProductId())
                     .orElseThrow(() -> new NotFoundException("Product not found: " + review.getProductId()));
 
             decrementStarCount(product, oldRating);
@@ -100,11 +124,12 @@ public class ProductReviewService implements ProductReviewUseCase {
             product.reCalculateRating();
             productRepository.save(product);
 
-            decrementStarCount(product.getShop(), oldRating);
-            incrementStarCount(product.getShop(), updated.getRating());
-            product.getShop().reCalculateRating();
-            shopRepository.save(product.getShop());
-
+            if (product.getShop() != null) {
+                decrementStarCount(product.getShop(), oldRating);
+                incrementStarCount(product.getShop(), updated.getRating());
+                product.getShop().reCalculateRating();
+                shopRepository.save(product.getShop());
+            }
         }
 
         return updated;
@@ -147,8 +172,6 @@ public class ProductReviewService implements ProductReviewUseCase {
             case 5 -> shop.setFiveStarRatingCount(Math.max(0, orZero(shop.getFiveStarRatingCount()) + delta));
         }
     }
-
-
 
     private int orZero(Integer value) {
         return value == null ? 0 : value;

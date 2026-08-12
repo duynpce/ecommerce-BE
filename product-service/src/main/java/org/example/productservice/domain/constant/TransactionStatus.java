@@ -32,9 +32,15 @@ public enum TransactionStatus {
     REJECTED,
 
     /**
-     * Buyer returned the product; returning procedure activated.
+     * all items of the transaction get returned
      */
     RETURNED,
+
+    /**
+     * some items of the transaction get returned
+     */
+    PARTIALLY_RETURNED
+    ,
 
     /**
      * Legacy: transaction failed due to system/payment error.

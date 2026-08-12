@@ -8,6 +8,7 @@ import org.example.productservice.domain.constant.TransactionStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -16,12 +17,14 @@ import java.util.UUID;
 @Builder
 public class TransactionResponse {
     private UUID id;
-    private UUID productId;
-    private UUID contributorId;
     private UUID customerId;
-    private String description;
-    private Integer quantity;
+    private List<UUID> subOrderIds;
     private BigDecimal totalAmount;
+    private BigDecimal discountAmount;
+    private UUID voucherId;
+    private String voucherCode;
+    private String description;
     private TransactionStatus status;
     private Instant createdAt;
+    private Instant updatedAt;
 }

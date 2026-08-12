@@ -12,6 +12,9 @@ public record CreateProductReviewRequest(
         @NotNull(message = "Transaction ID cannot be null")
         UUID transactionId,
 
+        @NotNull(message = "snapshot ID cannot be null")
+        UUID snapshotId,
+
         @NotNull(message = "Rating cannot be null")
         @Min(value = 0, message = "Rating cannot be less than 0")
         @Max(value = 5, message = "Rating cannot be more than 5")

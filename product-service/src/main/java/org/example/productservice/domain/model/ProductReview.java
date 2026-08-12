@@ -9,6 +9,7 @@ public class ProductReview extends BaseModel {
     private UUID productId;
     private UUID userId;
     private UUID transactionId;
+    private UUID snapshotId;
     private Integer rating;
     private String comment;
 
@@ -19,11 +20,12 @@ public class ProductReview extends BaseModel {
     public ProductReview() {
     }
 
-    public ProductReview(UUID id, UUID productId, UUID userId, UUID transactionId, Integer rating, String comment) {
+    public ProductReview(UUID id, UUID productId, UUID userId, UUID transactionId, UUID snapshotId, Integer rating, String comment) {
         this.id = id;
         this.productId = productId;
         this.userId = userId;
         this.transactionId = transactionId;
+        this.snapshotId = snapshotId;
         this.rating = rating;
         this.comment = comment;
     }
@@ -73,13 +75,21 @@ public class ProductReview extends BaseModel {
         this.transactionId = transactionId;
     }
 
+    public UUID getSnapshotId() {
+        return snapshotId;
+    }
+
+    public void setSnapshotId(UUID snapshotId) {
+        this.snapshotId = snapshotId;
+    }
+
     public Integer getRating() {
         return rating;
     }
 
     public void setRating(Integer rating) {
-        if(rating == null || rating > 5 || rating < 0) {
-            throw new IllegalArgumentException("Rating must be between 0 and 5");
+        if(rating == null || rating > 5 || rating   < 1) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
 
         this.rating = rating;

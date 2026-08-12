@@ -3,6 +3,7 @@ package org.example.productservice.application.repository;
 import org.example.productservice.application.command.PageCommand;
 import org.example.productservice.application.criteria.TransactionSearchCriteria;
 import org.example.productservice.domain.model.Transaction;
+import org.example.productservice.infrastructure.web.data.entity.TransactionEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,4 +17,5 @@ public interface TransactionRepository {
     boolean existsById(UUID id);
     void deleteById(UUID id);
     PageCommand<Transaction> search(TransactionSearchCriteria criteria);
+    Optional<Transaction> findByIdWithProductAndShop(UUID id);
 }

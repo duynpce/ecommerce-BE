@@ -6,6 +6,7 @@ public record CreateProductReviewCommand(
         UUID productId,
         UUID userId,
         UUID transactionId,
+        UUID snapshotId,
         Integer rating,
         String comment
 ) {}

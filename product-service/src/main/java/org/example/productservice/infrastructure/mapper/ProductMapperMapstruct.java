@@ -12,22 +12,20 @@ import org.example.productservice.infrastructure.web.dto.product.ProductResponse
 import org.example.productservice.infrastructure.web.dto.product.UpdateProductRequest;
 import org.mapstruct.*;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
 import java.util.UUID;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ShopMapperMapstruct.class, DateMapper.class})
 public interface ProductMapperMapstruct extends ProductMapper {
 
     @Override
+    @Mapping(target = "shop", source = "shop")
     Product toDomain(ProductEntity entity);
 
     @Override
     Product toDomain(CreateProductCommand command);
 
     @Override
+    @Mapping(target = "shop", ignore = true)
     ProductEntity toEntity(Product product);
 
     @Override
@@ -45,19 +43,9 @@ public interface ProductMapperMapstruct extends ProductMapper {
 
     @Override
     @Mapping(target = "createdFrom", source = "createdFrom", qualifiedByName = "localDateToInstantStart")
-    @Mapping(target = "createdTo", source = "createdTo", qualifiedByName = "localDateToInstantEnd")
+    @Mapping(target = "createdTo",   source = "createdTo",   qualifiedByName = "localDateToInstantEnd")
     ProductSearchCriteria toCriteria(ProductFilter filter);
 
     @Override
     ProductResponse toResponse(Product product);
-
-    @Named("localDateToInstantStart")
-    default Instant localDateToInstantStart(LocalDate date) {
-        return date == null ? null : date.atStartOfDay(ZoneOffset.UTC).toInstant();
-    }
-
-    @Named("localDateToInstantEnd")
-    default Instant localDateToInstantEnd(LocalDate date) {
-        return date == null ? null : date.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC).toInstant();
-    }
 }

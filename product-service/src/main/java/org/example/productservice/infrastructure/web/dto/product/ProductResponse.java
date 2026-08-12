@@ -27,4 +27,11 @@ public class ProductResponse {
     private ProductCategory category;
     private Map<String, String> attributes;
     private ProductStatus status;
+    private Double rating;
+    private Integer soldQuantity;
+    private Integer oneStarRatingCount;
+    private Integer twoStarRatingCount;
+    private Integer threeStarRatingCount;
+    private Integer fourStarRatingCount;
+    private Integer fiveStarRatingCount;
 }
