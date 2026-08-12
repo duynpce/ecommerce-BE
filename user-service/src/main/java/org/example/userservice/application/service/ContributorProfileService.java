@@ -2,6 +2,7 @@ package org.example.userservice.application.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.userservice.application.command.CreateContributorProfileCommand;
+import org.example.userservice.application.command.UpdateContributorProfileCommand;
 import org.example.userservice.application.mapper.ContributorProfileMapper;
 import org.example.userservice.application.repository.AccountProfileRepository;
 import org.example.userservice.application.repository.ContributorProfileRepository;
@@ -49,6 +50,32 @@ public class ContributorProfileService implements ContributorProfileUseCase {
     @Override
     public ContributorProfile getByAccountId(UUID accountId) {
         return contributorProfileRepository.findByAccountId(accountId);
+    }
+
+    @Override
+    @Transactional
+    public ContributorProfile updateContributorProfile(UUID accountId, UpdateContributorProfileCommand command) {
+        ContributorProfile profile = contributorProfileRepository.findByAccountId(accountId);
+        if (profile == null) {
+            throw new NotFoundException("Contributor profile not found for account: " + accountId);
+        }
+        if (command.bankName() != null && !command.bankName().isBlank()) {
+            profile.setBankName(command.bankName());
+        }
+        if (command.bankAccountNumber() != null && !command.bankAccountNumber().isBlank()) {
+            String current = profile.getBankAccountNumber();
+            if (!command.bankAccountNumber().equals(current)) {
+                if (contributorProfileRepository.existsByBankAccountNumber(command.bankAccountNumber())) {
+                    throw new ConflictException("Bank account number already exists: " + command.bankAccountNumber());
+                }
+                profile.setBankAccountNumber(command.bankAccountNumber());
+            }
+        }
+        if (command.taxId() != null && !command.taxId().isBlank()) {
+            profile.setTaxId(command.taxId());
+        }
+        contributorProfileRepository.save(profile);
+        return profile;
     }
 
     @Override
