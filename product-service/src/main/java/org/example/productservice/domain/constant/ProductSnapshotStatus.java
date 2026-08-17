@@ -15,6 +15,12 @@ public enum ProductSnapshotStatus {
     REJECTED,
 
     /**
+     * Buyer or system cancelled this item.
+     * Terminal failure state.
+     */
+    CANCELLED,
+
+    /**
      * Shop is preparing / packing this item.
      * Item has NOT yet been handed to a carrier.
      */
@@ -24,6 +30,12 @@ public enum ProductSnapshotStatus {
      * Item has been handed to the carrier and is in transit to the buyer.
      */
     DELIVERING,
+
+    /**
+     * Carrier delivery has finished and this snapshot is waiting for the buyer
+     * to confirm whether it was received, not received, or should be returned.
+     */
+    DELIVERED_AWAITING_CONFIRMATION,
 
     /**
      * Carrier confirmed delivery; item is in the buyer's hands.

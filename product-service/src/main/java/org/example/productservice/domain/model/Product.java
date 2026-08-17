@@ -36,6 +36,14 @@ public class Product extends BaseModel {
     private Shop shop;
 
     public Product() {
+        this.status = ProductStatus.PENDING;
+        this.rating = 0.0;
+        this.soldQuantity = 0;
+        this.oneStarRatingCount = 0;
+        this.twoStarRatingCount = 0;
+        this.threeStarRatingCount = 0;
+        this.fourStarRatingCount = 0;
+        this.fiveStarRatingCount = 0;
     }
 
     public Product(UUID id, UUID shopId, UUID contributorId, List<String> imgUrls, String name,

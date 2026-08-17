@@ -8,6 +8,7 @@ public record CreateSubOrderCommand(
         UUID transactionId,
         UUID shopId,
         UUID customerId,
+        UUID contributorId,
         BigDecimal shippingFee,
         String note,
         List<Item> items

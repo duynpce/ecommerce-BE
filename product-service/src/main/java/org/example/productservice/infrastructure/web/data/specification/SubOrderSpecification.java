@@ -22,6 +22,10 @@ public final class SubOrderSpecification {
             criteriaList.add(Criteria.where("shopId").is(criteria.shopId()));
         }
 
+        if (criteria.contributorId() != null) {
+            criteriaList.add(Criteria.where("contributorId").is(criteria.contributorId()));
+        }
+
         if (criteria.transactionId() != null) {
             criteriaList.add(Criteria.where("transactionId").is(criteria.transactionId()));
         }

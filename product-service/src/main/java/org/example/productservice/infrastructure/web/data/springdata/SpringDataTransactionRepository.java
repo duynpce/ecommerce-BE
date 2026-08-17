@@ -12,8 +12,6 @@ public interface SpringDataTransactionRepository extends MongoRepository<Transac
     @Query("{ 'items.productId': ?0 }")
     List<TransactionEntity> findByProductId(UUID productId);
 
-    List<TransactionEntity> findByContributorId(UUID contributorId);
-
     default Optional<TransactionEntity> findByIdWithProductAndShop(UUID id) {
         return findById(id);
     }

@@ -14,6 +14,10 @@ public final class ProductSpecification {
     public static Query fromCriteria(ProductSearchCriteria criteria) {
         List<Criteria> criteriaList = new ArrayList<>();
 
+        if(criteria.status() != null) {
+            criteriaList.add(Criteria.where("status").is(criteria.status()));
+        }
+
         if (criteria.name() != null && !criteria.name().isBlank()) {
             // Case-insensitive partial match — equivalent to JPA cb.like(cb.lower(...))
             criteriaList.add(Criteria.where("name").regex(criteria.name(), "i"));

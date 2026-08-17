@@ -14,6 +14,7 @@ import org.example.productservice.infrastructure.web.dto.transaction.CreateTrans
 import org.example.productservice.infrastructure.web.dto.transaction.TransactionFilter;
 import org.example.productservice.infrastructure.web.dto.transaction.TransactionResponse;
 import org.example.productservice.infrastructure.web.dto.transaction.UpdateTransactionRequest;
+import org.example.productservice.infrastructure.web.dto.transaction.UpdateTransactionStatusRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -123,56 +124,17 @@ public class TransactionController {
 
     // -------------------------------------------------------------------------
     // State transitions — called by ticket-service Camunda delegates
-    // -------------------------------------------------------------------------
+    // ---------------------------------------------------------------------    ----
 
-    /**
-     * Step 2a — Contributor approved the transaction.
-     * Transitions: PENDING → PACKING
-     */
-    @PatchMapping("/{id}/approve")
-    public ResponseEntity<ResponseDto<TransactionResponse>> approve(@PathVariable UUID id) {
-        TransactionResponse data = transactionMapper.toResponse(transactionUseCase.approve(id));
-        return ResponseEntity.ok(ResponseDto.success(data, "Transaction approved"));
-    }
-
-    /**
-     * Step 2b — Contributor rejected the transaction.
-     * Transitions: PENDING → REJECTED; restores product stock.
-     */
-    @PatchMapping("/{id}/reject")
-    public ResponseEntity<ResponseDto<TransactionResponse>> reject(@PathVariable UUID id) {
-        TransactionResponse data = transactionMapper.toResponse(transactionUseCase.reject(id));
-        return ResponseEntity.ok(ResponseDto.success(data, "Transaction rejected and stock restored"));
-    }
-
-    /**
-     * Step 3 — Contributor confirmed the product was handed to the carrier.
-     * Transitions: PACKING → DELIVERED
-     */
-    @PatchMapping("/{id}/deliver")
-    public ResponseEntity<ResponseDto<TransactionResponse>> markShipped(@PathVariable UUID id) {
-        TransactionResponse data = transactionMapper.toResponse(transactionUseCase.markShipped(id));
-        return ResponseEntity.ok(ResponseDto.success(data, "Transaction marked as shipped"));
-    }
-
-    /**
-     * Step 4 — Buyer confirmed the product was received.
-     * Transitions: DELIVERED → COMPLETED
-     */
     @PatchMapping("/{id}/complete")
-    public ResponseEntity<ResponseDto<TransactionResponse>> complete(@PathVariable UUID id) {
-        TransactionResponse data = transactionMapper.toResponse(transactionUseCase.complete(id));
-        return ResponseEntity.ok(ResponseDto.success(data, "Transaction completed"));
-    }
+    public ResponseEntity<ResponseDto<TransactionResponse>> complete(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateTransactionStatusRequest request) {
 
-    /**
-     * Step 5 — Return process completed by contributor.
-     * Transitions: DELIVERED → RETURNED; restores product stock.
-     */
-    @PostMapping("/{id}/return")
-    public ResponseEntity<ResponseDto<TransactionResponse>> returnTransaction(@PathVariable UUID id) {
-        TransactionResponse data = transactionMapper.toResponse(transactionUseCase.returnTransaction(id));
-        return ResponseEntity.ok(ResponseDto.success(data, "Transaction marked as returned and stock restored"));
+        TransactionResponse data = transactionMapper.toResponse(
+                transactionUseCase.complete(id, request.status()));
+        return ResponseEntity.ok(ResponseDto.success(
+                data, "Transaction status updated to " + request.status()));
     }
 
     // -------------------------------------------------------------------------

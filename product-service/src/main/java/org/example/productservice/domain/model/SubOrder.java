@@ -36,6 +36,8 @@ public class SubOrder extends BaseModel {
     /** The buyer. */
     private UUID customerId;
 
+    private UUID contributorId;
+
     /** Frozen product snapshots for this shop's portion of the order. */
     private List<ProductSnapshot> items = new ArrayList<>();
 
@@ -58,12 +60,15 @@ public class SubOrder extends BaseModel {
 
     // ── Constructors ───────────────────────────────────────────────────────────
 
-    public SubOrder() {}
+    public SubOrder() {
+        this.status = SubOrderStatus.PENDING;
+    }
 
     public SubOrder(UUID id,
                     UUID transactionId,
                     UUID shopId,
                     UUID customerId,
+                    UUID contributorId,
                     List<ProductSnapshot> items,
                     BigDecimal shippingFee,
                     String note) {
@@ -71,6 +76,7 @@ public class SubOrder extends BaseModel {
         this.transactionId = transactionId;
         this.shopId        = shopId;
         this.customerId    = customerId;
+        this.contributorId = contributorId;
         this.items         = items != null ? new ArrayList<>(items) : new ArrayList<>();
         this.shippingFee   = shippingFee != null ? shippingFee : BigDecimal.ZERO;
         this.note          = note;
@@ -124,7 +130,9 @@ public class SubOrder extends BaseModel {
     public void updateSnapshotStatus(UUID snapshotId, ProductSnapshotStatus newStatus) {
         ProductSnapshot snapshot = findSnapshotOrThrow(snapshotId);
         snapshot.setStatus(newStatus);
-        if (newStatus == ProductSnapshotStatus.RECEIVED || newStatus == ProductSnapshotStatus.COMPLETED) {
+        if (newStatus == ProductSnapshotStatus.DELIVERED_AWAITING_CONFIRMATION
+                || newStatus == ProductSnapshotStatus.RECEIVED
+                || newStatus == ProductSnapshotStatus.COMPLETED) {
             if (snapshot.getDeliveredAt() == null) {
                 snapshot.setDeliveredAt(Instant.now());
             }
@@ -133,19 +141,32 @@ public class SubOrder extends BaseModel {
     }
 
     public void recalculateStatus() {
-        if (items.isEmpty() || this.status == SubOrderStatus.CANCELLED) return;
+        if (items == null || items.isEmpty()) return;
 
-        boolean allReturned  = items.stream().allMatch(i -> i.getStatus() == ProductSnapshotStatus.RETURNED);
-        boolean allCompleted = items.stream().allMatch(i -> i.getStatus() == ProductSnapshotStatus.COMPLETED);
-        boolean anyReturned  = items.stream().anyMatch(i -> i.getStatus() == ProductSnapshotStatus.RETURNED);
-        boolean anyCompleted = items.stream().anyMatch(i -> i.getStatus() == ProductSnapshotStatus.COMPLETED);
+        boolean allTerminal = items.stream().allMatch(i ->
+                i.getStatus() == ProductSnapshotStatus.COMPLETED ||
+                i.getStatus() == ProductSnapshotStatus.RETURNED ||
+                i.getStatus() == ProductSnapshotStatus.CANCELLED ||
+                i.getStatus() == ProductSnapshotStatus.REJECTED
+        );
 
-        if (allReturned) {
-            this.status = SubOrderStatus.RETURNED;
-        } else if (allCompleted) {
-            this.status = SubOrderStatus.COMPLETED;
-        } else if (anyReturned && anyCompleted) {
-            this.status = SubOrderStatus.PARTIALLY_RETURNED;
+        if (allTerminal) {
+            boolean allCompleted = items.stream().allMatch(i -> i.getStatus() == ProductSnapshotStatus.COMPLETED);
+            boolean allReturned  = items.stream().allMatch(i -> i.getStatus() == ProductSnapshotStatus.RETURNED);
+            boolean allCancelled = items.stream().allMatch(i -> i.getStatus() == ProductSnapshotStatus.CANCELLED);
+            boolean allRejected  = items.stream().allMatch(i -> i.getStatus() == ProductSnapshotStatus.REJECTED);
+
+            if (allCompleted) {
+                this.status = SubOrderStatus.COMPLETED;
+            } else if (allReturned) {
+                this.status = SubOrderStatus.RETURNED;
+            } else if (allCancelled) {
+                this.status = SubOrderStatus.CANCELLED;
+            } else if (allRejected) {
+                this.status = SubOrderStatus.REJECTED;
+            } else {
+                this.status = SubOrderStatus.PARTIALLY_RETURNED;
+            }
         }
     }
 
@@ -170,6 +191,9 @@ public class SubOrder extends BaseModel {
 
     public UUID getCustomerId() { return customerId; }
     public void setCustomerId(UUID customerId) { this.customerId = customerId; }
+
+    public UUID getContributorId() { return contributorId; }
+    public void setContributorId(UUID contributorId) { this.contributorId = contributorId; }
 
     public List<ProductSnapshot> getItems() { return Collections.unmodifiableList(items); }
     public void setItems(List<ProductSnapshot> items) {

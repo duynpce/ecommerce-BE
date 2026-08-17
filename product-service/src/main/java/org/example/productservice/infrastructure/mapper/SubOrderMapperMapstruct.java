@@ -45,6 +45,7 @@ public interface SubOrderMapperMapstruct extends SubOrderMapper {
     @Override
     @Mapping(target = "customerId",    source = "customerId")
     @Mapping(target = "shopId",        source = "filter.shopId")
+    @Mapping(target = "contributorId", ignore = true)
     @Mapping(target = "transactionId", source = "filter.transactionId")
     @Mapping(target = "createdFrom",   source = "filter.createdFrom", qualifiedByName = "localDateToInstantStart")
     @Mapping(target = "createdTo",     source = "filter.createdTo",   qualifiedByName = "localDateToInstantEnd")
@@ -53,10 +54,20 @@ public interface SubOrderMapperMapstruct extends SubOrderMapper {
     @Override
     @Mapping(target = "customerId",    ignore = true)
     @Mapping(target = "shopId",        source = "shopId")
+    @Mapping(target = "contributorId", ignore = true)
     @Mapping(target = "transactionId", source = "filter.transactionId")
     @Mapping(target = "createdFrom",   source = "filter.createdFrom", qualifiedByName = "localDateToInstantStart")
     @Mapping(target = "createdTo",     source = "filter.createdTo",   qualifiedByName = "localDateToInstantEnd")
     SubOrderSearchCriteria toShopCriteria(SubOrderFilter filter, UUID shopId);
+
+    @Override
+    @Mapping(target = "customerId",    ignore = true)
+    @Mapping(target = "shopId",        ignore = true)
+    @Mapping(target = "contributorId", source = "contributorId")
+    @Mapping(target = "transactionId", source = "filter.transactionId")
+    @Mapping(target = "createdFrom",   source = "filter.createdFrom", qualifiedByName = "localDateToInstantStart")
+    @Mapping(target = "createdTo",     source = "filter.createdTo",   qualifiedByName = "localDateToInstantEnd")
+    SubOrderSearchCriteria toContributorCriteria(SubOrderFilter filter, UUID contributorId);
 
     @Override
     SubOrderResponse toResponse(SubOrder subOrder);

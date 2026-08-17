@@ -23,7 +23,11 @@ public class ProductSnapshot extends BaseModel {
     private Boolean isReviewed;
     private Instant deliveredAt;
 
-    public ProductSnapshot() {}
+    public ProductSnapshot() {
+        this.isReviewed  = false;
+        this.deliveredAt = null;
+        this.status      = ProductSnapshotStatus.PENDING;
+    }
 
     public ProductSnapshot(UUID id, UUID productId, String name, BigDecimal price, Integer quantity, String imageUrl) {
         if (price == null || price.compareTo(BigDecimal.ZERO) < 0) {

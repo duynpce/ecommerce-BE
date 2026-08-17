@@ -20,6 +20,7 @@ public class SubOrderResponse {
     private UUID transactionId;
     private UUID shopId;
     private UUID customerId;
+    private UUID contributorId;
     private List<ProductSnapshotResponse> items;
     private BigDecimal subTotalAmount;
     private BigDecimal shippingFee;

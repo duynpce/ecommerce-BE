@@ -52,13 +52,6 @@ public class TransactionRepositoryAdapter implements TransactionRepository {
     }
 
     @Override
-    public List<Transaction> findByContributorId(UUID contributorId) {
-        return springDataRepo.findByContributorId(contributorId).stream()
-                .map(transactionMapper::toDomain)
-                .toList();
-    }
-
-    @Override
     public boolean existsById(UUID id) {
         return springDataRepo.existsById(id);
     }

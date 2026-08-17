@@ -50,6 +50,10 @@ public class SubOrderEntity extends BaseEntity {
     @Indexed
     private UUID customerId;
 
+    /** The contributor (shop owner) responsible for this sub-order. */
+    @Indexed
+    private UUID contributorId;
+
     // ── Line items ─────────────────────────────────────────────────────────────
 
     /**

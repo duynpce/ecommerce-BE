@@ -59,6 +59,18 @@ public class Cart extends BaseModel {
     }
 
     /**
+     * Removes multiple product lines from the cart by their product IDs.
+     *
+     * @return {@code true} if any item was present and removed, {@code false} otherwise
+     */
+    public boolean removeItems(List<UUID> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return false;
+        }
+        return items.removeIf(i -> productIds.contains(i.getProductId()));
+    }
+
+    /**
      * Updates the quantity of an existing line item.
      * If {@code newQuantity} is 0 or less the item is removed entirely.
      *

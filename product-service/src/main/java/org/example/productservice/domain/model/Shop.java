@@ -29,6 +29,12 @@ public class Shop extends BaseModel {
     private Shop shop;
 
     public Shop() {
+        this.rating = 0.0;
+        this.soldQuantity = 0;
+        this.oneStarRatingCount = 0;
+        this.twoStarRatingCount = 0;
+        this.threeStarRatingCount = 0;
+        this.fourStarRatingCount = 0;
     }
 
     public Shop(UUID id, UUID contributorId, String name, String description,

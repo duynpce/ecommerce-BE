@@ -4,6 +4,7 @@ import org.example.productservice.application.command.CreateProductCommand;
 import org.example.productservice.application.command.UpdateProductCommand;
 import org.example.productservice.application.criteria.ProductSearchCriteria;
 import org.example.productservice.application.mapper.ProductMapper;
+import org.example.productservice.domain.constant.ProductStatus;
 import org.example.productservice.domain.model.Product;
 import org.example.productservice.infrastructure.web.data.entity.ProductEntity;
 import org.example.productservice.infrastructure.web.dto.product.CreateProductRequest;
@@ -44,7 +45,13 @@ public interface ProductMapperMapstruct extends ProductMapper {
     @Override
     @Mapping(target = "createdFrom", source = "createdFrom", qualifiedByName = "localDateToInstantStart")
     @Mapping(target = "createdTo",   source = "createdTo",   qualifiedByName = "localDateToInstantEnd")
+    @Mapping(target = "status", ignore = true)
     ProductSearchCriteria toCriteria(ProductFilter filter);
+
+    @Override
+    @Mapping(target = "createdFrom", source = "filter.createdFrom", qualifiedByName = "localDateToInstantStart")
+    @Mapping(target = "createdTo",   source = "filter.createdTo",   qualifiedByName = "localDateToInstantEnd")
+    ProductSearchCriteria toCriteria(ProductFilter filter, ProductStatus status);
 
     @Override
     ProductResponse toResponse(Product product);

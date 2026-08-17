@@ -102,8 +102,9 @@ public class Transaction extends BaseModel {
 
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) {
-        if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Total amount must be zero or positive");
+
+        if (totalAmount !=null && totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Total amount must be positive");
         }
         this.totalAmount = totalAmount;
     }

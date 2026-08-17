@@ -38,7 +38,6 @@ public class ProductReviewController {
             @CookieValue(value = "accessToken", required = false) String accessToken) {
 
         UUID userId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
-        log.info("Creating review for productId: {} by userId: {}", request.productId(), userId);
 
         CreateProductReviewCommand command = productReviewMapper.toCommand(request, userId);
         productReviewUseCase.create(command);

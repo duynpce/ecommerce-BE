@@ -47,11 +47,16 @@ public class ProductReviewService implements ProductReviewUseCase {
             throw new IllegalArgumentException(String.format("Snapshot %s has not been delivered for transaction %s", command.snapshotId(), command.transactionId()));
         }
 
-        boolean productInSubOrder = subOrder.getItems().stream()
-                .anyMatch(item -> item.getProductId().equals(command.productId()));
+        var reviewedSnapshot = subOrder.getItems().stream()
+                .filter(item -> item.getId().equals(command.snapshotId()))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(
+                        "Snapshot not found: " + command.snapshotId()));
 
-        if (!productInSubOrder) {
-            throw new IllegalArgumentException(String.format("Product %s is not part of sub-order %s", command.productId(), subOrder.getId()));
+        if (!reviewedSnapshot.getProductId().equals(command.productId())) {
+            throw new IllegalArgumentException(String.format(
+                    "Product %s does not belong to snapshot %s",
+                    command.productId(), command.snapshotId()));
         }
 
         Product product = productRepository.findByIdWithShop(command.productId())

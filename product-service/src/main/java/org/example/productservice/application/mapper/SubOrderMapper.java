@@ -26,6 +26,7 @@ public interface SubOrderMapper {
 
     SubOrderSearchCriteria toCriteria(SubOrderFilter filter, UUID customerId);
     SubOrderSearchCriteria toShopCriteria(SubOrderFilter filter, UUID shopId);
+    SubOrderSearchCriteria toContributorCriteria(SubOrderFilter filter, UUID contributorId);
 
     SubOrderResponse toResponse(SubOrder subOrder);
     ProductSnapshotResponse toSnapshotResponse(ProductSnapshot snapshot);

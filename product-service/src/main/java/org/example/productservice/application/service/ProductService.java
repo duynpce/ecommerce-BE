@@ -12,6 +12,7 @@ import org.example.productservice.application.repository.ProductRepository;
 import org.example.productservice.application.repository.ShopRepository;
 import org.example.productservice.application.usecase.ProductUseCase;
 import org.example.productservice.application.usecase.UploadUseCase;
+import org.example.productservice.domain.constant.ProductStatus;
 import org.example.productservice.domain.exception.ForbiddenException;
 import org.example.productservice.domain.exception.NotFoundException;
 import org.example.productservice.domain.model.Product;
@@ -103,6 +104,19 @@ public class ProductService implements ProductUseCase {
         return productRepository.search(criteria);
     }
 
+    @Override
+    public void censor(UUID id, Boolean isApproved) {
+        Product product = findById(id);
+
+        if(isApproved){
+            product.setStatus(ProductStatus.ACTIVE);
+        } else {
+            product.setStatus(ProductStatus.INACTIVE);
+        }
+
+        productRepository.save(product);
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private List<String> uploadAll(List<MultipartFile> imgs) {
@@ -110,4 +124,6 @@ public class ProductService implements ProductUseCase {
                 .map(uploadUseCase::uploadImg)
                 .toList();
     }
+
+
 }

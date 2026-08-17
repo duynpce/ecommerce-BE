@@ -8,6 +8,7 @@ import java.util.UUID;
 public record SubOrderSearchCriteria(
         UUID customerId,
         UUID shopId,
+        UUID contributorId,
         UUID transactionId,
         SubOrderStatus status,
         Instant createdFrom,

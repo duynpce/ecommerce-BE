@@ -4,10 +4,15 @@ public enum SubOrderStatus {
 
     /**
      * Initial / active state: sub-order is created and at least one item
-     * is still being processed (PENDING → PACKING → DELIVERING → RECEIVED).
-     * This status persists until the sub-order reaches a terminal state.
+     * is still being processed.
      */
     PENDING,
+
+    /**
+     * Every item in this sub-order was rejected by the contributor.
+     * Terminal state.
+     */
+    REJECTED,
 
     /**
      * Every item in this sub-order has been returned to the shop.
@@ -16,13 +21,13 @@ public enum SubOrderStatus {
     RETURNED,
 
     /**
-     * Some items were returned while others were completed.
+     * Some items were returned/cancelled while others were completed.
      * Terminal state.
      */
     PARTIALLY_RETURNED,
 
     /**
-     * The entire sub-order was cancelled before any item reached PACKING.
+     * The sub-order was cancelled.
      * Terminal state.
      */
     CANCELLED,
