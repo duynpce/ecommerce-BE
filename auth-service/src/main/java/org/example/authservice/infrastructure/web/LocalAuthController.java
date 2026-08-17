@@ -92,8 +92,10 @@ public class LocalAuthController {
 
 
     @GetMapping("/me")
-    public ResponseEntity<ResponseDto<Boolean>> getMe() {
-        return ResponseEntity.ok(ResponseDto.success(true));
+    public ResponseEntity<ResponseDto<String>> getMe(@CookieValue(value = "accessToken", required = false) String accessToken) {
+        UUID userId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
+
+        return ResponseEntity.ok(ResponseDto.success(userId.toString()));
     }
 
     @PutMapping("/change-password")

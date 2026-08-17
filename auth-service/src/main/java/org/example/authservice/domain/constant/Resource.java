@@ -12,5 +12,6 @@ public enum Resource {
     TRANSACTION,
     PROFILE,
     SHOP,
-    REVIEW
+    REVIEW,
+    CART
 }
