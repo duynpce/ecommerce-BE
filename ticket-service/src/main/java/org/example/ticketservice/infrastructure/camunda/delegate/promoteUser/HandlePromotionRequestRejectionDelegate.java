@@ -1,4 +1,4 @@
-package org.example.ticketservice.infrastructure.camunda.delegate;
+package org.example.ticketservice.infrastructure.camunda.delegate.promoteUser;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

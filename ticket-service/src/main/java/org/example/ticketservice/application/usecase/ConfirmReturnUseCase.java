@@ -9,8 +9,8 @@ import java.util.UUID;
 public interface ConfirmReturnUseCase {
 
     /**
-     * @param transactionId UUID of the transaction (process variable key)
-     * @param received      true = received back, false = not received back
+     * @param snapshotId UUID of the product snapshot (process variable key)
+     * @param received   true = received back, false = not received back
      */
-    void confirmReturn(UUID transactionId, boolean received);
+    void confirmReturn(UUID snapshotId, boolean received);
 }

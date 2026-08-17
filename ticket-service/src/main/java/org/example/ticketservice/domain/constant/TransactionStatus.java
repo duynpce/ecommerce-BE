@@ -7,10 +7,10 @@ package org.example.ticketservice.domain.constant;
  */
 public enum TransactionStatus {
     PENDING,
-    PACKING,
-    DELIVERING,
-    NOT_RECEIVED,
     COMPLETED,
     REJECTED,
-    RETURNED
+    CANCELLED,
+    RETURNED,
+    PARTIALLY_RETURNED,
+    FAILED
 }
