@@ -11,5 +11,7 @@ public enum Resource {
     TICKET,
     TRANSACTION,
     PROFILE,
-    SHOP
+    SHOP,
+    REVIEW,
+    CART
 }

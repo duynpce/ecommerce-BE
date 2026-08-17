@@ -4,7 +4,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.authservice.application.client.TokenGeneratorClient;
 import org.example.authservice.application.command.AuthTokenCommand;
+import org.example.authservice.application.command.ChangePasswordCommand;
 import org.example.authservice.application.command.LoginCommand;
 import org.example.authservice.application.mapper.AuthMapper;
 import org.example.authservice.application.usecase.*;
@@ -14,10 +16,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.util.Set;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/local")
@@ -32,6 +37,8 @@ public class LocalAuthController {
     private final ExistUseCase existUseCase;
     private final LoginUseCase loginUseCase;
     private final PromoteUseCase promoteUseCase;
+    private final ChangePasswordUseCase changePasswordUseCase;
+    private final TokenGeneratorClient tokenGeneratorClient;
 
     @PostMapping("/login")
     public ResponseEntity<ResponseDto<Set<String>>> login(
@@ -85,8 +92,23 @@ public class LocalAuthController {
 
 
     @GetMapping("/me")
-    public ResponseEntity<ResponseDto<Boolean>> getMe() {
-        return ResponseEntity.ok(ResponseDto.success(true));
+    public ResponseEntity<ResponseDto<String>> getMe(@CookieValue(value = "accessToken", required = false) String accessToken) {
+        UUID userId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
+
+        return ResponseEntity.ok(ResponseDto.success(userId.toString()));
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<ResponseDto<Void>> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request, @CookieValue(required = false, value = "accessToken") String accessToken
+            ) {
+
+        UUID userId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
+
+        changePasswordUseCase.changePassword(
+                new ChangePasswordCommand(userId, request.currentPassword(), request.newPassword())
+        );
+        return ResponseEntity.ok(ResponseDto.success(null, "Password changed successfully"));
     }
 
     @GetMapping("/username/{username}")

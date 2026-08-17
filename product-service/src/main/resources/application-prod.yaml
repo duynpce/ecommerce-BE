@@ -4,7 +4,7 @@ spring:
 
 
   mongodb:
-    uri: ${SPRING_DATA_MONGODB_URI:mongodb://mongo:27018/product_db}
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb://mongo:27018/product_db?replicaSet=rs0}
 
   security:
     oauth2:

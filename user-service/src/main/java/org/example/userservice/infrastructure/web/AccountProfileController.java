@@ -3,6 +3,7 @@ package org.example.userservice.infrastructure.web;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.userservice.application.client.TokenGeneratorClient;
 import org.example.userservice.application.command.PageCommand;
 import org.example.userservice.application.criteria.AccountProfileSearchCriteria;
 import org.example.userservice.application.mapper.AccountProfileMapper;
@@ -16,6 +17,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import java.util.UUID;
+
 @Slf4j
 @RestController
 @RequestMapping("/account-profiles")
@@ -24,6 +29,7 @@ public class AccountProfileController {
 
     private final AccountProfileUseCase accountProfileUseCase;
     private final AccountProfileMapper accountProfileMapper;
+    private final TokenGeneratorClient tokenGeneratorClient;
 
     @PostMapping
     public ResponseEntity<ResponseDto<Void>> createContributorAccount(@Valid @RequestBody CreateAccountProfileRequest request) {
@@ -34,6 +40,22 @@ public class AccountProfileController {
     @GetMapping("/phone-number/{phoneNumber}")
     public ResponseEntity<ResponseDto<Boolean>> existPhoneNumber(@PathVariable("phoneNumber") String phoneNumber) {
         return ResponseEntity.ok(ResponseDto.success(accountProfileUseCase.existsByPhoneNumber(phoneNumber)));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ResponseDto<AccountProfileResponse>> getMyAccountProfile(@CookieValue(required = false, value = "accessToken") String accessToken) {
+        UUID userId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
+        AccountProfile accountProfile = accountProfileUseCase.getAccountProfileById(userId);
+        return ResponseEntity.ok(ResponseDto.success(accountProfileMapper.toResponse(accountProfile)));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<ResponseDto<AccountProfileResponse>> updateMyAccountProfile(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody UpdateAccountProfileRequest request) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        AccountProfile updated = accountProfileUseCase.updateAccountProfile(userId, accountProfileMapper.toCommand(request));
+        return ResponseEntity.ok(ResponseDto.success(accountProfileMapper.toResponse(updated), "Account profile updated successfully"));
     }
 
     /**

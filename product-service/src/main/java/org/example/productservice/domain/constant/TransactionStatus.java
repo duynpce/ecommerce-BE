@@ -7,42 +7,32 @@ public enum TransactionStatus {
     PENDING,
 
     /**
-     * Contributor approved the transaction; product is being packed.
-     */
-    PACKING,
-
-    /**
-     * Product handed to transportation agency; in transit to buyer.
-     */
-    DELIVERING,
-
-    /**
-     * Buyer reported product not received; pending re-delivery.
-     */
-    NOT_RECEIVED,
-
-    /**
-     * Transaction completed successfully; product received by buyer.
+     * All sub-orders in the transaction are completed.
      */
     COMPLETED,
 
     /**
-     * Contributor rejected the transaction.
+     * All sub-orders in the transaction were rejected.
      */
     REJECTED,
 
     /**
-     * Buyer returned the product; returning procedure activated.
+     * All sub-orders in the transaction were cancelled.
+     */
+    CANCELLED,
+
+    /**
+     * All items of the transaction got returned.
      */
     RETURNED,
+
+    /**
+     * Some items of the transaction got returned or cancelled.
+     */
+    PARTIALLY_RETURNED,
 
     /**
      * Legacy: transaction failed due to system/payment error.
      */
     FAILED,
-
-    /**
-     * Legacy: transaction was reversed.
-     */
-    REVERSED
 }

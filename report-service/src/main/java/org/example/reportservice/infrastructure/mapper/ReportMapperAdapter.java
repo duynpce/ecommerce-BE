@@ -3,7 +3,7 @@ package org.example.reportservice.infrastructure.mapper;
 import lombok.RequiredArgsConstructor;
 import org.example.reportservice.application.criteria.AccountSearchCriteria;
 import org.example.reportservice.application.mapper.ReportMapper;
-import org.example.reportservice.infrastructure.web.dto.AccountReportFilter;
+import org.example.reportservice.infrastructure.user.dto.AccountReportFilter;
 import org.springframework.stereotype.Component;
 
 @Component

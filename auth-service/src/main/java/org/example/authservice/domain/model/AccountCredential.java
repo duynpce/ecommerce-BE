@@ -1,8 +1,11 @@
 package org.example.authservice.domain.model;
 
 import org.example.authservice.domain.constant.AccountStatus;
+import org.example.authservice.domain.exception.ForbiddenException;
 import org.example.authservice.domain.valueobject.Email;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -105,6 +108,38 @@ public class AccountCredential {
 
     public Email changeEmail(String email){
         return new Email(email);
+    }
+
+    /**
+     * Change the account password.
+     * Rules enforced here (domain layer):
+     *  1. currentPassword must match the stored (encoded) password.
+     *  2. Only one change per 48 hours is allowed (tracked via updatedAt).
+     *  3. Delegates to setPassword() which enforces regex and "not same as current" guard.
+     *
+     * @param currentRawPassword the plain-text password the user typed as "current"
+     * @param newRawPassword     the desired new plain-text password
+     * @param encoder            the PasswordEncoder used to verify / hash passwords
+     */
+    public void changePassword(String currentRawPassword, String newRawPassword, PasswordEncoder encoder) {
+        // 1. Verify current password
+        if (!encoder.matches(currentRawPassword, this.password)) {
+            throw new IllegalArgumentException("Current password is incorrect.");
+        }
+
+        // 2. Enforce 48-hour cooldown
+        if (this.updatedAt != null &&
+                Duration.between(this.updatedAt, Instant.now()).toHours() < 48) {
+            long hoursElapsed   = Duration.between(this.updatedAt, Instant.now()).toHours();
+            long hoursRemaining = 48 - hoursElapsed;
+            throw new ForbiddenException(
+                    "You can only change your password once every 48 hours. " +
+                    "Please try again in " + hoursRemaining + " hour(s)."
+            );
+        }
+
+        // 3. Encode and store (setPassword() enforces regex + not-same-as-current)
+        setPassword(encoder.encode(newRawPassword));
     }
 
     private void validatePassword(String password) {

@@ -3,7 +3,7 @@ package org.example.reportservice.infrastructure.user.httpclient;
 import java.time.LocalDate;
 import java.util.List;
 import org.example.reportservice.domain.constant.Gender;
-import org.example.reportservice.infrastructure.web.dto.AccountReportResponsive;
+import org.example.reportservice.infrastructure.user.dto.AccountReportResponsive;
 import org.example.reportservice.infrastructure.web.dto.ResponseDto;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;

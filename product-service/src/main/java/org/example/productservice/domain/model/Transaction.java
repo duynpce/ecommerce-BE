@@ -3,128 +3,129 @@ package org.example.productservice.domain.model;
 import org.example.productservice.domain.constant.TransactionStatus;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
-public class Transaction {
+/**
+ * Domain model for a <em>transaction</em> — one checkout session that may
+ * span multiple shops.
+ *
+ * <p>Relationship overview:
+ * <pre>
+ *   Transaction (1) ──── (*) SubOrder (1) ──── (*) ProductSnapshot
+ * </pre>
+ * Product-level details and per-shop totals live inside each {@link SubOrder}.
+ * This model owns the cross-shop aggregate total, voucher discount,
+ * and the ordered list of sub-order references.
+ */
+public class Transaction extends BaseModel {
+
     private UUID id;
-    private UUID productId;
-    private UUID contributorId;
     private UUID customerId;
-    private Integer quantity;
-    private BigDecimal price;
+    private List<UUID> subOrderIds = new ArrayList<>();
     private BigDecimal totalAmount;
-    private TransactionStatus status;
+    private UUID voucherId;
+    private String voucherCode;
+    private BigDecimal discountAmount = BigDecimal.ZERO;
     private String description;
-    private Instant createdAt;
-    private Instant updatedAt;
+    private TransactionStatus status;
 
-    public Transaction(UUID id, UUID productId, UUID contributorId, UUID customerId, Integer quantity, BigDecimal price, String description,
-            Instant createdAt, Instant updatedAt) {
-        this.id = id;
-        this.productId = productId;
-        this.contributorId = contributorId;
-        this.customerId = customerId;
-        this.quantity = quantity;
-        this.price = price;
-        this.description = description;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.totalAmount = calculateTotal();
+    // ── Constructors ───────────────────────────────────────────────────────────
+
+    public Transaction() {}
+
+    public Transaction(UUID id,
+                       UUID customerId,
+                       List<UUID> subOrderIds,
+                       BigDecimal totalAmount,
+                       UUID voucherId,
+                       String voucherCode,
+                       BigDecimal discountAmount,
+                       String description) {
+        this.id             = id;
+        this.customerId     = customerId;
+        this.subOrderIds    = subOrderIds != null ? new ArrayList<>(subOrderIds) : new ArrayList<>();
+        this.totalAmount    = totalAmount;
+        this.voucherId      = voucherId;
+        this.voucherCode    = voucherCode;
+        this.discountAmount = discountAmount != null ? discountAmount : BigDecimal.ZERO;
+        this.description    = description;
+        this.status         = TransactionStatus.PENDING;
     }
 
-    public Transaction() {
+    // ── Business helpers ───────────────────────────────────────────────────────
+    public void addSubOrderId(UUID subOrderId) {
+        this.subOrderIds.add(subOrderId);
     }
 
-    public UUID getId() {
-        return id;
+    public void removeSubOrderId(UUID subOrderId) {
+        this.subOrderIds.remove(subOrderId);
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void recalculateTotal(List<SubOrder> subOrders) {
+        BigDecimal gross = subOrders.stream()
+                .map(SubOrder::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        this.totalAmount = gross.subtract(
+                discountAmount != null ? discountAmount : BigDecimal.ZERO);
     }
 
-    public UUID getProductId() {
-        return productId;
+    public void applyVoucher(UUID voucherId, String voucherCode, BigDecimal discountAmount) {
+        if (discountAmount == null || discountAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Discount amount must be zero or positive");
+        }
+        this.voucherId      = voucherId;
+        this.voucherCode    = voucherCode;
+        this.discountAmount = discountAmount;
     }
 
-    public void setProductId(UUID productId) {
-        this.productId = productId;
+    public void removeVoucher() {
+        this.voucherId      = null;
+        this.voucherCode    = null;
+        this.discountAmount = BigDecimal.ZERO;
     }
 
-    public UUID getContributorId() {
-        return contributorId;
+    // ── Getters & Setters ──────────────────────────────────────────────────────
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public UUID getCustomerId() { return customerId; }
+    public void setCustomerId(UUID customerId) { this.customerId = customerId; }
+
+    public List<UUID> getSubOrderIds() { return Collections.unmodifiableList(subOrderIds); }
+    public void setSubOrderIds(List<UUID> subOrderIds) {
+        this.subOrderIds = subOrderIds != null ? new ArrayList<>(subOrderIds) : new ArrayList<>();
     }
 
-    public void setContributorId(UUID contributorId) {
-        this.contributorId = contributorId;
-    }
-
-    public UUID getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(UUID customerId) {
-        this.customerId = customerId;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
-    }
-
+    public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) {
+
+        if (totalAmount !=null && totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Total amount must be positive");
+        }
         this.totalAmount = totalAmount;
     }
 
-    public String getDescription() {
-        return description;
+    public UUID getVoucherId() { return voucherId; }
+    public void setVoucherId(UUID voucherId) { this.voucherId = voucherId; }
+
+    public String getVoucherCode() { return voucherCode; }
+    public void setVoucherCode(String voucherCode) { this.voucherCode = voucherCode; }
+
+    public BigDecimal getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(BigDecimal discountAmount) {
+        if (discountAmount == null || discountAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Discount amount must be zero or positive");
+        }
+        this.discountAmount = discountAmount;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public TransactionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TransactionStatus status) {
-        this.status = status;
-    }
-
-    public BigDecimal calculateTotal() {
-        return price.multiply(BigDecimal.valueOf(quantity));
-    }
+    public TransactionStatus getStatus() { return status; }
+    public void setStatus(TransactionStatus status) { this.status = status; }
 }

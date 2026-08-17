@@ -12,6 +12,10 @@ import org.example.userservice.infrastructure.web.dto.AccountProfileReportRespon
 import org.example.userservice.infrastructure.web.dto.CreateAccountProfileRequest;
 import org.springframework.stereotype.Component;
 
+import org.example.userservice.application.command.UpdateAccountProfileCommand;
+import org.example.userservice.infrastructure.web.dto.AccountProfileResponse;
+import org.example.userservice.infrastructure.web.dto.UpdateAccountProfileRequest;
+
 @Component
 @RequiredArgsConstructor
 public class AccountProfileProfileMapperAdapter implements AccountProfileMapper {
@@ -40,6 +44,16 @@ public class AccountProfileProfileMapperAdapter implements AccountProfileMapper 
     @Override
     public AccountProfileReportResponsive toReportResponse(AccountProfile accountProfile) {
         return accountProfileMapperMapstruct.toReportResponse(accountProfile);
+    }
+
+    @Override
+    public AccountProfileResponse toResponse(AccountProfile accountProfile) {
+        return accountProfileMapperMapstruct.toResponse(accountProfile);
+    }
+
+    @Override
+    public UpdateAccountProfileCommand toCommand(UpdateAccountProfileRequest request) {
+        return accountProfileMapperMapstruct.toCommand(request);
     }
 
     @Override

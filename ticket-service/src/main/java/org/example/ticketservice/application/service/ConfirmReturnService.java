@@ -18,20 +18,20 @@ public class ConfirmReturnService implements ConfirmReturnUseCase {
     private final TaskService taskService;
 
     @Override
-    public void confirmReturn(UUID transactionId, boolean received) {
+    public void confirmReturn(UUID snapshotId, boolean received) {
         Task task = taskService.createTaskQuery()
-                .processVariableValueEquals("transactionId", transactionId.toString())
+                .processVariableValueEquals("snapshotId", snapshotId.toString())
                 .taskDefinitionKey("ReturnConfirm")
                 .singleResult();
 
         if (task == null) {
             throw new IllegalStateException(
-                    "No pending return confirmation task found for transactionId: " + transactionId);
+                    "No pending return confirmation task found for snapshotId: " + snapshotId);
         }
 
         taskService.complete(task.getId(), Map.of("status", received ? "RECEIVED" : "NOT_RECEIVED"));
 
-        log.info("[returning-products] Contributor confirmed return received={}: transactionId={}",
-                received, transactionId);
+        log.info("[returning-products] Contributor confirmed return received={}: snapshotId={}",
+                received, snapshotId);
     }
 }

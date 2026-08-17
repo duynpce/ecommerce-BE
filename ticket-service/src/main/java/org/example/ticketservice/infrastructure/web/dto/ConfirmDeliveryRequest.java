@@ -4,8 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 /**
- * Request body for POST /transaction-tickets/{transactionId}/delivery
- * Buyer confirms the delivery outcome.
+ * Request body for POST
+ * /transaction-tickets/sub-orders/{subOrderId}/items/{snapshotId}/delivery.
+ * Buyer confirms the delivery outcome for one snapshot.
  * status must be one of: RECEIVED, NOT_RECEIVED, RETURNED
  */
 public record ConfirmDeliveryRequest(

@@ -1,62 +1,145 @@
 package org.example.productservice.application.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.productservice.application.client.TicketClient;
+import org.example.productservice.application.command.CreateSubOrderCommand;
 import org.example.productservice.application.command.CreateTransactionCommand;
 import org.example.productservice.application.command.PageCommand;
 import org.example.productservice.application.command.UpdateTransactionCommand;
 import org.example.productservice.application.criteria.TransactionSearchCriteria;
+import org.example.productservice.application.mapper.SubOrderMapper;
 import org.example.productservice.application.mapper.TransactionMapper;
 import org.example.productservice.application.repository.ProductRepository;
 import org.example.productservice.application.repository.TransactionRepository;
+import org.example.productservice.application.usecase.SubOrderUseCase;
 import org.example.productservice.application.usecase.TransactionUseCase;
+import org.example.productservice.domain.constant.ProductStatus;
 import org.example.productservice.domain.constant.TransactionStatus;
 import org.example.productservice.domain.exception.InvalidStateException;
 import org.example.productservice.domain.exception.NotFoundException;
 import org.example.productservice.domain.model.Product;
+import org.example.productservice.domain.model.SubOrder;
 import org.example.productservice.domain.model.Transaction;
 import org.example.productservice.infrastructure.ticket.dto.StartBuyingProcedureRequest;
+import org.example.productservice.infrastructure.web.dto.suborder.SubOrderResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TransactionService implements TransactionUseCase {
 
     private final TransactionRepository transactionRepository;
     private final ProductRepository productRepository;
+    private final SubOrderUseCase subOrderUseCase;
     private final TransactionMapper transactionMapper;
+    private final SubOrderMapper subOrderMapper;
     private final TicketClient ticketClient;
 
     @Override
     @Transactional
     public Transaction create(CreateTransactionCommand command) {
-        Product product = productRepository.findById(command.productId())
-                .orElseThrow(() -> new NotFoundException("Product not found: " + command.productId()));
-
-        if (product.getQuantity() < command.quantity()) {
-            throw new IllegalArgumentException("Insufficient stock for product: " + command.productId());
+        if (command.items() == null || command.items().isEmpty()) {
+            throw new IllegalArgumentException("Transaction must contain at least one item");
         }
 
-        Transaction transaction = transactionMapper.toDomain(command);
-        transaction.setContributorId(product.getContributorId());
+        // 1. Group requested items by shop and remember the contributor for each shop.
+        // SubOrderService.create owns snapshot creation, stock deduction, totals, and persistence.
+        Map<UUID, List<CreateSubOrderCommand.Item>> shopItemsMap = new LinkedHashMap<>();
+        Map<UUID, UUID> shopContributorMap = new HashMap<>();
+        Map<UUID, Integer> requestedQuantityByProduct = new HashMap<>();
+
+        for (var itemReq : command.items()) {
+            Product product = productRepository.findById(itemReq.productId())
+                    .orElseThrow(() -> new NotFoundException("Product not found: " + itemReq.productId()));
+
+            if (product.getStatus() != ProductStatus.ACTIVE) {
+                throw new InvalidStateException("Product " + product.getName() + " is not active");
+            }
+
+            int requestedQuantity = requestedQuantityByProduct.merge(
+                    product.getId(),
+                    itemReq.quantity(),
+                    Integer::sum
+            );
+
+            if (product.getQuantity() < requestedQuantity) {
+                throw new InvalidStateException("Insufficient stock for product " + product.getName()
+                        + ". Requested: " + requestedQuantity + ", available: " + product.getQuantity());
+            }
+
+            UUID shopId = product.getShopId();
+            if (shopId == null) {
+                throw new NotFoundException("Shop not found for product: " + product.getId());
+            }
+
+            UUID contributorId = product.getContributorId();
+            if (contributorId == null) {
+                throw new InvalidStateException("Contributor not found for product: " + product.getId());
+            }
+
+            UUID mappedContributorId = shopContributorMap.putIfAbsent(shopId, contributorId);
+
+            if (mappedContributorId != null && !mappedContributorId.equals(contributorId)) {
+                throw new InvalidStateException("Products in shop " + shopId + " have inconsistent contributors");
+            }
+
+            shopItemsMap.computeIfAbsent(shopId, ignored -> new ArrayList<>())
+                    .add(new CreateSubOrderCommand.Item(product.getId(), itemReq.quantity()));
+        }
+
+        // 2. Create parent transaction
+        UUID transactionId = UUID.randomUUID();
+        Transaction transaction = new Transaction();
+        transaction.setId(transactionId);
         transaction.setCustomerId(command.customerId());
+        transaction.setCreatedAt(Instant.now());
         transaction.setStatus(TransactionStatus.PENDING);
 
-        product.setQuantity(product.getQuantity() - command.quantity());
-        productRepository.save(product);
+        Transaction savedTransaction = transactionRepository.save(transaction);
 
-        Transaction saved = transactionRepository.save(transaction);
+        // 3. Create sub-orders per shop
+        List<SubOrder> createdSubOrders = new ArrayList<>();
+        for (Map.Entry<UUID, List<CreateSubOrderCommand.Item>> entry : shopItemsMap.entrySet()) {
+            UUID shopId = entry.getKey();
+            SubOrder savedSubOrder = subOrderUseCase.create(new CreateSubOrderCommand(
+                    savedTransaction.getId(),
+                    shopId,
+                    command.customerId(),
+                    shopContributorMap.get(shopId),
+                    BigDecimal.ZERO,
+                    null,
+                    entry.getValue()
+            ));
 
+            createdSubOrders.add(savedSubOrder);
+            savedTransaction.addSubOrderId(savedSubOrder.getId());
+        }
+
+        // 4. Recalculate transaction aggregate total
+        savedTransaction.recalculateTotal(createdSubOrders);
+        Transaction finalTransaction = transactionRepository.save(savedTransaction);
+
+        // Map sub-orders to response DTOs containing snapshots
+        List<SubOrderResponse> subOrderResponses =
+                createdSubOrders.stream()
+                        .map(subOrderMapper::toResponse)
+                        .toList();
+
+        // 5. Trigger ticket process with transaction ID and sub-orders list
         ticketClient.startBuyingProcedure(new StartBuyingProcedureRequest(
-                saved.getId(),
-                saved.getContributorId(),
-                saved.getCustomerId()
+                finalTransaction.getId(),
+                finalTransaction.getCustomerId(),
+                subOrderResponses
         ));
 
-        return saved;
+        return finalTransaction;
     }
 
     @Override
@@ -91,92 +174,20 @@ public class TransactionService implements TransactionUseCase {
         return transactionRepository.search(criteria);
     }
 
-    /**
-     * Step 2a — PENDING → APPROVED
-     */
     @Override
     @Transactional
-    public Transaction approve(UUID id) {
-        Transaction transaction = requireTransaction(id);
-        requireStatus(transaction, TransactionStatus.PENDING, "approve");
-        transaction.setStatus(TransactionStatus.PACKING);
-
-        return transactionRepository.save(transaction);
-    }
-
-    /**
-     * Step 2b — PENDING → REJECTED
-     * Restores stock since the reservation made at creation is canceled.
-     */
-    @Override
-    @Transactional
-    public Transaction reject(UUID id) {
-        Transaction transaction = requireTransaction(id);
-        requireStatus(transaction, TransactionStatus.PENDING, "reject");
-        transaction.setStatus(TransactionStatus.REJECTED);
-        transactionRepository.save(transaction);
-
-        Product product = productRepository.findById(transaction.getProductId())
-                .orElseThrow(() -> new NotFoundException("Product not found: " + transaction.getProductId()));
-        product.setQuantity(product.getQuantity() + transaction.getQuantity());
-        productRepository.save(product);
-
-        return transaction;
-    }
-
-    /**
-     * Step 3 — APPROVED → SHIPPED
-     */
-    @Override
-    @Transactional
-    public Transaction markShipped(UUID id) {
-        Transaction transaction = requireTransaction(id);
-        requireStatus(transaction, TransactionStatus.PACKING, "mark as shipped");
-        transaction.setStatus(TransactionStatus.DELIVERING);
-
-        return transactionRepository.save(transaction);
-    }
-
-    /**
-     * Step 4 — SHIPPED → COMPLETED
-     */
-    @Override
-    @Transactional
-    public Transaction complete(UUID id) {
-        Transaction transaction = requireTransaction(id);
-        requireStatus(transaction, TransactionStatus.DELIVERING, "complete");
-        transaction.setStatus(TransactionStatus.COMPLETED);
-
-        return transactionRepository.save(transaction);
-    }
-
-    /**
-     * Step 5 — SHIPPED → RETURNED
-     * Restores product stock when the return procedure succeeds.
-     */
-    @Override
-    @Transactional
-    public Transaction returnTransaction(UUID id) {
-        Transaction transaction = requireTransaction(id);
-
-        if (transaction.getStatus() == TransactionStatus.RETURNED) {
-            return transaction;
+    public Transaction complete(UUID id, TransactionStatus status) {
+        if (status == null) {
+            throw new IllegalArgumentException("Transaction status cannot be null");
         }
 
-        transaction.setStatus(TransactionStatus.RETURNED);
-        transactionRepository.save(transaction);
+        Transaction transaction = requireTransaction(id);
 
-        Product product = productRepository.findById(transaction.getProductId())
-                .orElseThrow(() -> new NotFoundException("Product not found: " + transaction.getProductId()));
-        product.setQuantity(product.getQuantity() + transaction.getQuantity());
-        productRepository.save(product);
+        requireStatus(transaction, TransactionStatus.PENDING, "complete");
+        transaction.setStatus(status);
 
-        return transaction;
+        return transactionRepository.save(transaction);
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private Transaction requireTransaction(UUID id) {
         return transactionRepository.findById(id)
