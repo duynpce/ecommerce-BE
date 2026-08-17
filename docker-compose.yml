@@ -24,7 +24,7 @@ services:
 
   mongo:
     image: 'mongo:8.0'
-    command: mongod --port 27018
+    command: mongod --port 27018 --replSet rs0 --bind_ip_all
     environment:
       - MONGO_INITDB_DATABASE=product_db
     ports:
@@ -44,6 +44,37 @@ services:
         reservations:
           cpus: "0.25"
           memory: 256M
+
+  mongo-init-replica:
+    image: 'mongo:8.0'
+    restart: "no"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    entrypoint:
+      - mongosh
+      - --host
+      - mongo
+      - --port
+      - "27018"
+      - --quiet
+      - --eval
+      - |
+        try {
+          rs.status();
+        } catch (error) {
+          if (error.codeName === 'NotYetInitialized') {
+            rs.initiate({
+              _id: 'rs0',
+              members: [{ _id: 0, host: 'mongo:27018' }]
+            });
+          } else {
+            throw error;
+          }
+        }
+        while (!db.hello().isWritablePrimary) {
+          sleep(1000);
+        }
 
   keycloak:
     image: 'keycloak/keycloak:26.6.2'
@@ -200,7 +231,7 @@ services:
     container_name: product-service
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27018/product_db
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27018/product_db?replicaSet=rs0
       - GCP_BUCKET_NAME=my-product-img
       - GCP_CONFIG_PATH=/run/secrets/gcp-key.json
       - JWT_ACCESS_SECRET=bXktYWNjZXNzLXNlY3JldC1rZXktZm9yLXNob3BwaW5nLWFwcC0yNTY=
@@ -210,8 +241,8 @@ services:
     volumes:
       - './product-service/src/main/resources/internship-img-storage-597843ff6229.json:/run/secrets/gcp-key.json:ro'
     depends_on:
-      mongo:
-        condition: service_healthy
+      mongo-init-replica:
+        condition: service_completed_successfully
     develop:
       watch:
         - action: rebuild
