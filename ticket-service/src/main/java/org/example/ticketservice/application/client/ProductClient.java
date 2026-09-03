@@ -14,15 +14,21 @@ import java.util.UUID;
  *
  * <p>Sub-order operations (approve/reject/cancel/deliver/complete) are used
  * by the updated multi-instance BPMN which operates at sub-order granularity.
- * Legacy transaction-level methods are retained for the returning-items-procedure.
+ * The returning-items-procedure also operates on the individual snapshot in its
+ * owning sub-order.
  */
 public interface ProductClient {
 
     /** Transaction-level: DELIVERED → COMPLETED */
-    void complete(UUID transactionId, TransactionStatus status);
+    default void complete(UUID transactionId, TransactionStatus status) {
+        complete(transactionId, status, null, null);
+    }
 
-    /** Transaction-level: DELIVERED → RETURNED; stock restored */
-    void returnTransaction(UUID transactionId);
+    void complete(
+            UUID transactionId,
+            TransactionStatus status,
+            String reason,
+            UUID triggerSubOrderId);
 
     // ── Sub-order level (buying-items-procedure multi-instance) ───────────────
 
@@ -30,7 +36,7 @@ public interface ProductClient {
     void approveSubOrder(UUID subOrderId);
 
     /** Sub-order: PENDING → REJECTED, stock restored (contributor rejected) */
-    void rejectSubOrder(UUID subOrderId);
+    void rejectSubOrder(UUID subOrderId, String reason);
 
     /** Sub-order: any non-terminal → CANCELLED, stock restored (user cancel / timeout) */
     void cancelSubOrder(UUID subOrderId, String reason);
@@ -38,13 +44,17 @@ public interface ProductClient {
     /** Whole sub-order carrier handoff: snapshots PACKING → DELIVERING. */
     void handoffSubOrder(UUID subOrderId);
 
+    /** Persists a non-terminal sub-order state driven by the delivery workflow. */
+    void updateSubOrderStatus(UUID subOrderId, SubOrderStatus status);
+
     /** One snapshot finishes delivery and records deliveredAt. */
     void deliverSnapshot(UUID subOrderId, UUID snapshotId);
 
+    /** One returned snapshot reaches its contributor and has its stock restored. */
+    void returnSnapshot(UUID subOrderId, UUID snapshotId);
+
     /** Writes the terminal status calculated from Camunda snapshot state. */
     void completeSubOrder(UUID subOrderId, SubOrderStatus status);
-
-    void markSnapshotIsReviewed(UUID subOrderId, UUID snapshotId, boolean isReviewed);
 
     /** Creates a product review in product-service for a delivered snapshot. */
     void createProductReview(CreateProductReviewCommand command);

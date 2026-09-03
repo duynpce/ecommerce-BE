@@ -11,11 +11,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Service task: {@code deliver the product} ({@code deliver-the-product})
- * inside the outer multi-instance sub-process {@code multi-instance-sub-process}.
+ * Service task: {@code item received} in {@code delivery-process}.
  *
- * <p>Fires automatically after the {@code mock-delivery-process} timer (PT15S) expires.
- * Transitions only the current snapshot from DELIVERING to
+ * <p>Fires after the shipper completes the real delivery confirmation task.
+ * Transitions the current snapshot from DELIVERING to
  * DELIVERED_AWAITING_CONFIRMATION.
  *
  * <p>Operates at snapshot granularity via the nested multi-instance
@@ -41,12 +40,22 @@ public class DeliverTheProductDelegate implements JavaDelegate {
         UUID snapshotId = UUID.fromString(snapshotIdStr);
 
         execution.setVariableLocal("currentSnapshotId", snapshotIdStr);
-        execution.setVariable("confirmExpireAt", Instant.now().plusSeconds(180).toString());
-        execution.setVariable("reviewExpireAt", Instant.now().plusSeconds(300).toString());
-
         if (!(execution.getVariable("retry") instanceof Number)) {
             execution.setVariable("retry", 0);
         }
+
+        if (Boolean.TRUE.equals(execution.getVariable("returnProcess"))) {
+            // The normal delivery transition would move the snapshot back to
+            // DELIVERED_AWAITING_CONFIRMATION. A return delivery must keep the
+            // snapshot in its return state until the contributor confirms it.
+            execution.setVariable("deliveryOutcome", "DELIVERED");
+            log.info("[delivery] Return delivered to contributor: subOrderId={}, snapshotId={}",
+                    subOrderId, snapshotId);
+            return;
+        }
+
+        execution.setVariable("confirmExpireAt", Instant.now().plusSeconds(180).toString());
+        execution.setVariable("reviewExpireAt", Instant.now().plusSeconds(300).toString());
 
         String currentStatus = (String) execution.getVariable("snapshot_status_" + snapshotIdStr);
         if (!"DELIVERING".equals(currentStatus)) {
@@ -59,6 +68,7 @@ public class DeliverTheProductDelegate implements JavaDelegate {
         productClient.deliverSnapshot(subOrderId, snapshotId);
         execution.setVariable(
                 "snapshot_status_" + snapshotIdStr, "DELIVERED_AWAITING_CONFIRMATION");
+        execution.setVariable("deliveryOutcome", "DELIVERED");
 
         log.info("[buying-items] Snapshot delivered and awaiting buyer confirmation: "
                         + "subOrderId={}, snapshotId={}",

@@ -5,6 +5,7 @@ import org.example.ticketservice.infrastructure.product.dto.SubOrderDto;
 import org.example.ticketservice.infrastructure.product.dto.CancelSubOrderRequest;
 import org.example.ticketservice.infrastructure.product.dto.UpdateTransactionStatusRequest;
 import org.example.ticketservice.infrastructure.product.dto.UpdateSubOrderStatusRequest;
+import org.example.ticketservice.infrastructure.product.dto.TerminalStatusReasonRequest;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,13 +19,13 @@ import java.util.UUID;
 
 /**
  * Spring HTTP Interface client for product-service state-transition endpoints.
- * Covers both legacy transaction-level operations and the new sub-order-level
- * operations used by the multi-instance buying-items-procedure BPMN.
+ * Covers transaction completion plus the sub-order-level operations used by the
+ * multi-instance buying and returning BPMN processes.
  */
 @HttpExchange
 public interface ProductHttpClient {
 
-    // ── Transaction-level (legacy / returning-items-procedure) ────────────────
+    // ── Transaction-level ─────────────────────────────────────────────────────
 
     @PatchExchange("/api/v1/products/transactions/{id}/deliver")
     void deliver(@PathVariable UUID id);
@@ -34,16 +35,15 @@ public interface ProductHttpClient {
             @PathVariable UUID id,
             @RequestBody UpdateTransactionStatusRequest request);
 
-    @PostExchange("/api/v1/products/transactions/{id}/return")
-    void returnTransaction(@PathVariable UUID id);
-
     // ── Sub-order level (buying-items-procedure multi-instance) ───────────────
 
     @PatchExchange("/api/v1/products/sub-orders/{id}/approve")
     void approveSubOrder(@PathVariable UUID id);
 
     @PatchExchange("/api/v1/products/sub-orders/{id}/reject")
-    void rejectSubOrder(@PathVariable UUID id);
+    void rejectSubOrder(
+            @PathVariable UUID id,
+            @RequestBody TerminalStatusReasonRequest request);
 
     @PatchExchange("/api/v1/products/sub-orders/{id}/cancel")
     void cancelSubOrder(
@@ -53,8 +53,18 @@ public interface ProductHttpClient {
     @PatchExchange("/api/v1/products/sub-orders/{id}/handoff")
     void handoffSubOrder(@PathVariable UUID id);
 
+    @PatchExchange("/api/v1/products/sub-orders/{id}/workflow-status")
+    void updateSubOrderStatus(
+            @PathVariable UUID id,
+            @RequestBody UpdateSubOrderStatusRequest request);
+
     @PatchExchange("/api/v1/products/sub-orders/{id}/items/{snapshotId}/deliver")
     void deliverSnapshot(
+            @PathVariable UUID id,
+            @PathVariable UUID snapshotId);
+
+    @PatchExchange("/api/v1/products/sub-orders/{id}/items/{snapshotId}/return")
+    void returnSnapshot(
             @PathVariable UUID id,
             @PathVariable UUID snapshotId);
 
@@ -74,9 +84,6 @@ public interface ProductHttpClient {
     /** Updates product snapshot status directly for snapshot-level sync/fallback. */
     @PatchExchange("/api/v1/products/sub-orders/{id}/items/{snapshotId}/snapshot-status")
     void updateSnapshotStatus(@PathVariable("id") UUID subOrderId, @PathVariable("snapshotId") UUID snapshotId, @RequestParam("status") String status);
-
-    @PatchExchange("/api/v1/products/sub-orders/{id}/items/{snapshotId}/isReviewed")
-    void markSnapshotIsReviewed(@PathVariable("id") UUID subOrderId, @PathVariable("snapshotId") UUID snapshotId, @RequestParam("isReviewed") Boolean isReviewed);
 
     @PostExchange("/api/v1/products/reviews/create")
     void createProductReview(@RequestBody CreateProductReviewCommand command);

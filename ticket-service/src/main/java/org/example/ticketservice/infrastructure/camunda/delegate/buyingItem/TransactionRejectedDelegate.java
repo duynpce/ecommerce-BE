@@ -5,22 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.example.ticketservice.application.client.ProductClient;
+import org.example.ticketservice.domain.constant.TransactionStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Service task: {@code reject order} ({@code reject-order}) inside the
- * confirmation sub-process {@code confirmation-sub-process}.
- *
- * <p>Fires on the "product rejected" branch after the contributor completes
- * the "confirm products of sub-order" user task ({@code confirm-products-of-sub-order})
- * with {@code approve = false}, <em>or</em> when the confirmation timeout
- * boundary event fires (auto-reject after PT1M).
- *
- * <p>Operates at <em>sub-order</em> granularity via the {@code subOrderId}
- * loop variable. Transitions sub-order: PENDING -> CANCELLED in product-service;
- * reserved stock is restored.
+ * Ends the parent transaction with the REJECTED status after the inner
+ * sub-order rejection has raised the workflow business error.
  */
 @Slf4j
 @Component("transactionRejectedDelegate")
@@ -30,24 +24,64 @@ public class TransactionRejectedDelegate implements JavaDelegate {
     private final ProductClient productClient;
 
     @Override
-    @SuppressWarnings("unchecked")
     public void execute(DelegateExecution execution) {
-        String subOrderIdStr = (String) execution.getVariable("subOrderId");
-        UUID subOrderId = UUID.fromString(subOrderIdStr);
-
-        execution.setVariable("suborder_status_" + subOrderIdStr, "REJECTED");
-
-        java.util.List<java.util.Map<String, Object>> snapshots =
-                (java.util.List<java.util.Map<String, Object>>) execution.getVariable("snapshots_" + subOrderIdStr);
-        if (snapshots != null) {
-            for (java.util.Map<String, Object> snapshot : snapshots) {
-                String snapshotId = (String) snapshot.get("snapshotId");
-                execution.setVariable("snapshot_status_" + snapshotId, "REJECTED");
-            }
+        Object value = execution.getVariable("transactionId");
+        if (!(value instanceof String transactionIdValue) || transactionIdValue.isBlank()) {
+            throw new IllegalStateException(
+                    "[buying-items] Missing transactionId while rejecting process instance "
+                            + execution.getProcessInstanceId());
         }
 
-        productClient.rejectSubOrder(subOrderId);
+        UUID transactionId = UUID.fromString(transactionIdValue);
+        String triggerSubOrderValue = firstNonBlank(
+                (String) execution.getVariable("terminalSubOrderId"),
+                (String) execution.getVariable("rejectedSubOrderId"));
+        UUID triggerSubOrderId = triggerSubOrderValue == null
+                ? null
+                : UUID.fromString(triggerSubOrderValue);
+        String sourceReason = firstNonBlank(
+                (String) execution.getVariable("terminalReason"),
+                (String) execution.getVariable("rejectErrorMessage"));
+        if (sourceReason == null) {
+            sourceReason = "A sub-order was rejected by the workflow.";
+        }
+        execution.setVariable(
+                "transaction_status_" + transactionIdValue,
+                TransactionStatus.REJECTED.name());
+        markAllSubOrdersCancelled(execution);
+        productClient.complete(
+                transactionId, TransactionStatus.REJECTED, sourceReason, triggerSubOrderId);
 
-        log.info("[buying-items] Sub-order rejected and stock restored: subOrderId={}", subOrderId);
+        log.info("[buying-items] Transaction rejected: transactionId={}", transactionId);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void markAllSubOrdersCancelled(DelegateExecution execution) {
+        Object ids = execution.getVariable("subOrderIds");
+        if (!(ids instanceof List<?> subOrderIds)) return;
+        for (Object id : subOrderIds) {
+            if (id instanceof String subOrderId) {
+                execution.setVariable("suborder_status_" + subOrderId, "CANCELLED");
+                markSnapshotsCancelled(execution, subOrderId);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void markSnapshotsCancelled(DelegateExecution execution, String subOrderId) {
+        Object value = execution.getVariable("snapshots_" + subOrderId);
+        if (!(value instanceof List<?> snapshots)) return;
+        for (Object entry : snapshots) {
+            if (entry instanceof Map<?, ?> snapshot
+                    && snapshot.get("snapshotId") instanceof String snapshotId) {
+                execution.setVariable("snapshot_status_" + snapshotId, "CANCELLED");
+            }
+        }
+    }
+
+    private String firstNonBlank(String first, String second) {
+        return first != null && !first.isBlank()
+                ? first.trim()
+                : second == null || second.isBlank() ? null : second.trim();
     }
 }

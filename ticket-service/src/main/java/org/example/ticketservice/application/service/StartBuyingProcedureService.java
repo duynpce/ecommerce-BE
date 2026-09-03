@@ -49,6 +49,8 @@ public class StartBuyingProcedureService implements StartBuyingProcedureUseCase 
 
                 // Store shopId per sub-order so delegates (e.g. StartReturnProcessDelegate) can look it up
                 variables.put("shopId_" + subOrderIdStr, shopIdStr);
+                variables.put("contributorId_" + subOrderIdStr,
+                        subOrder.contributorId() != null ? subOrder.contributorId().toString() : null);
 
                 List<Map<String, Object>> snapshotListForSubOrder = new ArrayList<>();
                 List<String> snapshotIdsForSubOrder = new ArrayList<>();
@@ -63,6 +65,8 @@ public class StartBuyingProcedureService implements StartBuyingProcedureUseCase 
                         snapshotMap.put("snapshotId", snapshotIdStr);
                         snapshotMap.put("subOrderId", subOrderIdStr);
                         snapshotMap.put("shopId", shopIdStr);
+                        snapshotMap.put("contributorId",
+                                subOrder.contributorId() != null ? subOrder.contributorId().toString() : null);
                         snapshotMap.put("transactionId", transactionId.toString());
                         snapshotMap.put("productId", item.productId() != null ? item.productId().toString() : null);
                         snapshotMap.put("name", item.name());
@@ -86,6 +90,7 @@ public class StartBuyingProcedureService implements StartBuyingProcedureUseCase 
                 variables.put("snapshots_" + subOrderIdStr, snapshotListForSubOrder);
                 variables.put("snapshotIds_" + subOrderIdStr, snapshotIdsForSubOrder);
                 variables.put("suborder_status_" + subOrderIdStr, subOrder.status() != null ? subOrder.status() : "PENDING");
+                variables.put("suborder_confirmed_" + subOrderIdStr, false);
             }
 
             // The delegate validates this prepared list and publishes "subOrderIds".
@@ -94,6 +99,7 @@ public class StartBuyingProcedureService implements StartBuyingProcedureUseCase 
             variables.put("snapshotIds", allSnapshotIds);
             variables.put("allSnapshots", allSnapshots);
             variables.put("subOrderSnapshotsMap", subOrderSnapshotsMap);
+            variables.put("allSubOrderConfirmed", false);
 
         // Use transactionId as the business key so tasks can be looked up by it
         runtimeService.startProcessInstanceByKey(PROCESS_KEY, transactionId.toString(), variables);

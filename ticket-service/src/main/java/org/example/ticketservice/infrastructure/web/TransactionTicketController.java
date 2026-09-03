@@ -42,13 +42,15 @@ import java.util.UUID;
  *
  *  3. Contrib -> POST  /transaction-tickets/sub-orders/{subOrderId}/shipped
  *                      (confirm handoff to carrier for one sub-order)
- *     [15-second mock-delivery timer fires automatically in Camunda]
+ *     [Camunda consolidates all sub-orders, then assigns the real shipper tasks]
  *
  *  4. Buyer   -> POST  /transaction-tickets/sub-orders/{subOrderId}/items/{snapshotId}/delivery
  *                      (RECEIVED | NOT_RECEIVED | RETURNED for one snapshot)
  *
- *  5. Contrib -> POST  /transaction-tickets/{transactionId}/confirm-return
- *                      (confirm the returned goods were received back — still transaction-scoped)
+ *  5. Shipper -> Accept and deliver the return through the shared delivery process
+ *
+ *  6. Contrib -> POST  /transaction-tickets/{snapshotId}/confirm-return
+ *                      (confirm the returned goods were received back)
  * </pre>
  */
 @Slf4j
@@ -111,7 +113,7 @@ public class TransactionTicketController {
             @PathVariable UUID subOrderId,
             @Valid @RequestBody ConfirmTransactionRequest request) {
 
-        confirmTransactionUseCase.confirm(subOrderId, request.approve());
+        confirmTransactionUseCase.confirm(subOrderId, request.approve(), request.reason());
 
         String message = request.approve() ? "Sub-order approved" : "Sub-order rejected";
         log.info("Sub-order {}: subOrderId={}", request.approve() ? "approved" : "rejected", subOrderId);
@@ -130,7 +132,8 @@ public class TransactionTicketController {
             @PathVariable UUID subOrderId,
             @PathVariable UUID snapshotId) {
 
-        confirmTransactionUseCase.confirm(subOrderId, false);
+        confirmTransactionUseCase.confirm(
+                subOrderId, false, "Rejected by contributor through item " + snapshotId);
         log.info("Whole sub-order rejected from legacy snapshot route: subOrderId={}, snapshotId={}",
                 subOrderId, snapshotId);
         return ResponseEntity.ok(ResponseDto.success(null, "Sub-order rejected"));
@@ -157,7 +160,8 @@ public class TransactionTicketController {
     /**
      * Step 3 — Contributor confirms the sub-order's goods were handed to the transportation agency.
      * Completes the {@code confirm-delivery-to-transportation-agency} user task.
-     * After this, the 15-second mock-delivery timer starts automatically in Camunda.
+     * The sub-order waits for transaction-wide consolidation before the shipper
+     * pickup and delivery tasks begin.
      * <p>Authority: TRANSACTION:WRITE_SELF (contributor role)
      *
      * @param subOrderId the sub-order ID
@@ -241,11 +245,11 @@ public class TransactionTicketController {
 
 
     // -------------------------------------------------------------------------
-    // Step 5 — Return confirmation (transaction-scoped)
+    // Step 6 — Return confirmation (snapshot-scoped)
     // -------------------------------------------------------------------------
 
     /**
-     * Step 5 — Contributor confirms whether the returned product was received back.
+     * Step 6 — Contributor confirms whether the returned product was received back.
      * Completes the return-confirmation user task in the returning-items Camunda sub-process.
      * <p>Authority: TRANSACTION:WRITE_SELF (contributor role)
      */

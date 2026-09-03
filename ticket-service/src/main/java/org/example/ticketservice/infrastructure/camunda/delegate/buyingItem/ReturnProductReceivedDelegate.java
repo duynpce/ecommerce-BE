@@ -12,8 +12,8 @@ import java.util.UUID;
 /**
  * Service task: "product received" (ReturnSetStatus in returning-products process).
  * Fires when contributor confirms the returned product was received back.
- * Transitions transaction: DELIVERED → RETURNED in product-service.
- * Product-service also restores product stock on return.
+ * Marks the returned snapshot in its owning sub-order as RETURNED.
+ * Product-service restores stock idempotently and recalculates the sub-order status.
  */
 @Slf4j
 @Component("returnProductReceivedDelegate")
@@ -24,10 +24,28 @@ public class ReturnProductReceivedDelegate implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution execution) {
-        UUID transactionId = UUID.fromString((String) execution.getVariable("transactionId"));
+        UUID subOrderId = requiredUuid(execution, "subOrderId");
+        UUID snapshotId = requiredUuid(execution, "snapshotId");
 
-        productClient.returnTransaction(transactionId);
+        productClient.returnSnapshot(subOrderId, snapshotId);
 
-        log.info("[returning-products] Return completed and stock restored: transactionId={}", transactionId);
+        log.info("[returning-products] Return completed and stock restored: "
+                        + "subOrderId={}, snapshotId={}",
+                subOrderId, snapshotId);
+    }
+
+    private UUID requiredUuid(DelegateExecution execution, String variableName) {
+        Object value = execution.getVariable(variableName);
+        if (!(value instanceof String text) || text.isBlank()) {
+            throw new IllegalStateException(
+                    "[returning-products] Missing " + variableName + " process variable");
+        }
+        try {
+            return UUID.fromString(text);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException(
+                    "[returning-products] Invalid " + variableName + "=" + text,
+                    exception);
+        }
     }
 }

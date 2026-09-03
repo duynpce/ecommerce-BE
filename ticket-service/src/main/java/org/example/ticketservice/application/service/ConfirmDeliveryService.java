@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.task.Task;
+import org.example.ticketservice.application.client.ProductClient;
 import org.example.ticketservice.application.usecase.ConfirmDeliveryUseCase;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class ConfirmDeliveryService implements ConfirmDeliveryUseCase {
 
     private final TaskService taskService;
+    private final ProductClient productClient;
 
     @Override
     public void confirmDelivery(UUID subOrderId, UUID snapshotId, String status) {
@@ -44,8 +46,25 @@ public class ConfirmDeliveryService implements ConfirmDeliveryUseCase {
 
         Task task = matchingTasks.getFirst();
 
-        Object snapshotStatus = taskService.getVariable(
-                task.getId(), "snapshot_status_" + snapshotId);
+        String snapshotStatusVariable = "snapshot_status_" + snapshotId;
+        Object snapshotStatus = taskService.getVariable(task.getId(), snapshotStatusVariable);
+
+        // A buyer confirmation task can only be reached after the shipper
+        // reported RECEIVED. Reconcile process instances created before the
+        // delivery transition was persisted by DeliveryWorkService.
+        if ("DELIVERING".equals(snapshotStatus)) {
+            productClient.deliverSnapshot(subOrderId, snapshotId);
+            taskService.setVariable(
+                    task.getId(), snapshotStatusVariable,
+                    "DELIVERED_AWAITING_CONFIRMATION");
+            snapshotStatus = "DELIVERED_AWAITING_CONFIRMATION";
+
+            log.warn("[buying-items] Reconciled stale delivery status: subOrderId={}, "
+                            + "snapshotId={}, oldStatus=DELIVERING, "
+                            + "newStatus=DELIVERED_AWAITING_CONFIRMATION",
+                    subOrderId, snapshotId);
+        }
+
         if (!"DELIVERED_AWAITING_CONFIRMATION".equals(snapshotStatus)) {
             throw new IllegalStateException(
                     "Snapshot is not awaiting delivery confirmation: snapshotId="
