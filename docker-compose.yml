@@ -1,3 +1,5 @@
+name: internship-assignment
+
 services:
   postgres:
     image: 'postgres:18.1'
