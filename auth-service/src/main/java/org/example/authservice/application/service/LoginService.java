@@ -51,7 +51,7 @@ public class LoginService implements LoginUseCase{
 
         AuthTokenCommand newAuthToken = tokenGeneratorClient.
                 generate(accountCredential.getUsername(), accountCredential.getId(),
-                accountCredential.extractRoleNames(),accountCredential.extractPermissions());
+                accountCredential.extractRoleNames(), accountCredential.extractEffectivePermissions());
 
         AuthToken updatedRecord = new AuthToken(
                 accountCredential.getId(),

@@ -49,4 +49,9 @@ public class AuthTokenRepositoryAdapter implements AuthTokenRepository {
         }
         springDataRepo.deleteByAuthRefreshToken(authRefreshToken);
     }
+
+    @Override
+    public void deleteByUserId(UUID userId) {
+        springDataRepo.deleteById(userId);
+    }
 }

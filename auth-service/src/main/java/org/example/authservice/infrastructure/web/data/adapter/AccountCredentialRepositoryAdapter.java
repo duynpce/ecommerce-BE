@@ -11,6 +11,8 @@ import org.example.authservice.infrastructure.web.entity.AccountCredentialEntity
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -58,6 +60,13 @@ public class AccountCredentialRepositoryAdapter implements AccountCredentialRepo
     public Optional<AccountCredential> findByEmail(String email) {
         return springDataRepo.findByEmail(email)
                 .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<AccountCredential> findAllById(Collection<UUID> ids) {
+        return springDataRepo.findAllById(ids).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
 

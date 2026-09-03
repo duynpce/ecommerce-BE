@@ -80,7 +80,9 @@ public class CallbackService implements CallbackUseCase {
 
 
         Set<String> roles = accountCredential.extractRoleNames();
-        Set<String> permissions = accountCredential.getStatus() == AccountStatus.ACTIVE ? accountCredential.extractPermissions() : Set.of("PROFILE:COMPLETE_SELF");
+        Set<String> permissions = accountCredential.getStatus() == AccountStatus.INACTIVE
+                ? Set.of("PROFILE:COMPLETE_SELF")
+                : accountCredential.extractEffectivePermissions();
 
         return buildAndSaveAuthToken(keycloakSession.email(), accountCredential.getId(), keycloakSession.refreshToken(), roles, permissions);
     }
