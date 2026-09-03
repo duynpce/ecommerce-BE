@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -37,6 +38,20 @@ public class ProductReviewService implements ProductReviewUseCase {
     @Transactional
     public ProductReview create(CreateProductReviewCommand command) {
         log.info("Creating review for productId: {} by userId: {}", command.productId(), command.userId());
+
+        ProductReview existingReview = productReviewRepository
+                .findByUserIdAndTransactionIdAndSnapshotId(
+                        command.userId(), command.transactionId(), command.snapshotId())
+                .orElse(null);
+        if (existingReview != null) {
+            if (sameReview(existingReview, command)) {
+                log.info("Identical review retry accepted: transactionId={}, snapshotId={}, userId={}",
+                        command.transactionId(), command.snapshotId(), command.userId());
+                return existingReview;
+            }
+            throw new IllegalArgumentException(
+                    "Snapshot has already been reviewed: " + command.snapshotId());
+        }
 
         SubOrder subOrder = subOrderRepository.findByTransactionId(command.transactionId()).stream()
                 .filter(so -> so.getItems().stream().anyMatch(item -> item.getId().equals(command.snapshotId())))
@@ -86,6 +101,12 @@ public class ProductReviewService implements ProductReviewUseCase {
         shopRepository.save(shop);
 
         return saved;
+    }
+
+    private boolean sameReview(ProductReview review, CreateProductReviewCommand command) {
+        return Objects.equals(review.getProductId(), command.productId())
+                && Objects.equals(review.getRating(), command.rating())
+                && Objects.equals(review.getComment(), command.comment());
     }
 
     @Override

@@ -14,7 +14,7 @@ import org.mapstruct.*;
 
 import java.util.UUID;
 
-@Mapper(componentModel = "spring", uses = {ProductMapperMapstruct.class, DateMapper.class})
+@Mapper(componentModel = "spring", uses = {ProductMapperMapstruct.class, VoucherMapperMapstruct.class, DateMapper.class})
 public interface TransactionMapperMapStruct extends TransactionMapper {
 
     @Override
@@ -32,7 +32,8 @@ public interface TransactionMapperMapStruct extends TransactionMapper {
 
     @Override
     default CreateTransactionCommand toCommand(CreateTransactionRequest request, UUID customerId) {
-        return new CreateTransactionCommand(customerId, request.getItemList());
+        return new CreateTransactionCommand(customerId, request.getItemList(), request.voucherCodes(),
+                request.phoneNumber(), request.address());
     }
 
     @Override

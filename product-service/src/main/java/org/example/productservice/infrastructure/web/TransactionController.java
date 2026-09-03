@@ -132,7 +132,8 @@ public class TransactionController {
             @Valid @RequestBody UpdateTransactionStatusRequest request) {
 
         TransactionResponse data = transactionMapper.toResponse(
-                transactionUseCase.complete(id, request.status()));
+                transactionUseCase.complete(
+                        id, request.status(), request.reason(), request.triggerSubOrderId()));
         return ResponseEntity.ok(ResponseDto.success(
                 data, "Transaction status updated to " + request.status()));
     }

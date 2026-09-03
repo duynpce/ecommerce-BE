@@ -34,6 +34,14 @@ public class ProductReviewRepositoryAdapter implements ProductReviewRepository {
     }
 
     @Override
+    public Optional<ProductReview> findByUserIdAndTransactionIdAndSnapshotId(
+            UUID userId, UUID transactionId, UUID snapshotId) {
+        return springDataRepo
+                .findByUserIdAndTransactionIdAndSnapshotId(userId, transactionId, snapshotId)
+                .map(productReviewMapper::toDomain);
+    }
+
+    @Override
     public List<ProductReview> findAllByProductId(UUID productId) {
         return springDataRepo.findAllByProductId(productId).stream()
                 .map(productReviewMapper::toDomain)

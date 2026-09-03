@@ -94,4 +94,5 @@ public class SubOrderEntity extends BaseEntity {
     /** Current fulfillment status of this sub-order. */
     @Builder.Default
     private SubOrderStatus status = SubOrderStatus.PENDING;
+    private String statusReason;
 }

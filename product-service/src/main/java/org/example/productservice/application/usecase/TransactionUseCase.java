@@ -15,6 +15,6 @@ public interface TransactionUseCase {
     Transaction update(UpdateTransactionCommand command);
     void delete(UUID id);
     PageCommand<Transaction> search(TransactionSearchCriteria criteria);
-    Transaction complete(UUID id, TransactionStatus status);
+    Transaction complete(UUID id, TransactionStatus status, String reason, UUID triggerSubOrderId);
 
 }

@@ -27,6 +27,7 @@ public class SubOrderResponse {
     private BigDecimal totalAmount;
     private String note;
     private SubOrderStatus status;
+    private String statusReason;
     private Instant createdAt;
     private Instant updatedAt;
 }
