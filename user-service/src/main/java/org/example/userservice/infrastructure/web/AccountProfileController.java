@@ -52,10 +52,25 @@ public class AccountProfileController {
     @PutMapping("/me")
     public ResponseEntity<ResponseDto<AccountProfileResponse>> updateMyAccountProfile(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody UpdateAccountProfileRequest request) {
+            @Valid @RequestBody UpdateAccountProfileRequest request) {
         UUID userId = UUID.fromString(jwt.getSubject());
         AccountProfile updated = accountProfileUseCase.updateAccountProfile(userId, accountProfileMapper.toCommand(request));
         return ResponseEntity.ok(ResponseDto.success(accountProfileMapper.toResponse(updated), "Account profile updated successfully"));
+    }
+
+    @PutMapping("/admin/{accountId}")
+    @PreAuthorize("hasAuthority('USER:UPDATE_ALL') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ResponseDto<AccountProfileResponse>> updateAccountProfileAsAdmin(
+            @PathVariable UUID accountId,
+            @Valid @RequestBody UpdateAccountProfileRequest request) {
+        AccountProfile updated = accountProfileUseCase.updateAccountProfile(
+                accountId,
+                accountProfileMapper.toCommand(request)
+        );
+        return ResponseEntity.ok(ResponseDto.success(
+                accountProfileMapper.toResponse(updated),
+                "Account updated successfully"
+        ));
     }
 
     /**
