@@ -46,7 +46,7 @@
       <bpmn:incoming>Flow_ReturnDeliveryFailed</bpmn:incoming>
       <bpmn:outgoing>Flow_0p5wjr8</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_1m0dg0q" sourceRef="Gateway_ReturnRetryLimit" targetRef="product-return-failed">
+    <bpmn:sequenceFlow id="Flow_1m0dg0q" name="retry &#62; 3" sourceRef="Gateway_ReturnRetryLimit" targetRef="product-return-failed">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${retry &gt;= 3}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_0p5wjr8" sourceRef="product-return-failed" targetRef="Event_0y0pq24" />
@@ -93,122 +93,138 @@
       <bpmn:outgoing>Flow_1m0dg0q</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_ReturnConfirmationRecorded" sourceRef="returned-product-not-recieved" targetRef="Gateway_ReturnRetryLimit" />
-    <bpmn:sequenceFlow id="Flow_ReturnContributorRetry" sourceRef="Gateway_ReturnRetryLimit" targetRef="Activity_0svpfqw">
+    <bpmn:sequenceFlow id="Flow_ReturnContributorRetry" name="retry &#60;= 3" sourceRef="Gateway_ReturnRetryLimit" targetRef="Activity_0svpfqw">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${retry &lt; 3}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="returning-items-procedure">
       <bpmndi:BPMNShape id="ReturnStart_di" bpmnElement="ReturnStart">
-        <dc:Bounds x="172" y="222" width="36" height="36" />
+        <dc:Bounds x="172" y="282" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="155" y="265" width="70" height="14" />
+          <dc:Bounds x="155" y="325" width="70" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0svpfqw_di" bpmnElement="Activity_0svpfqw">
-        <dc:Bounds x="270" y="200" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_14lu3eu_di" bpmnElement="Activity_14lu3eu">
-        <dc:Bounds x="440" y="200" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_ReturnDeliveryOutcome_di" bpmnElement="Gateway_ReturnDeliveryOutcome" isMarkerVisible="true">
-        <dc:Bounds x="566" y="215" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ReturnConfirm_di" bpmnElement="ReturnConfirm">
-        <dc:Bounds x="616" y="200" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1ujpt6r_di" bpmnElement="Gateway_1ujpt6r" isMarkerVisible="true">
-        <dc:Bounds x="781" y="215" width="50" height="50" />
+        <dc:Bounds x="781" y="275" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="775" y="325" width="63" height="40" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ReturnSetStatus_di" bpmnElement="returned-product-recieved">
-        <dc:Bounds x="936" y="200" width="100" height="80" />
+        <dc:Bounds x="936" y="260" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_180sl6b_di" bpmnElement="returned-product-not-recieved">
-        <dc:Bounds x="936" y="80" width="100" height="80" />
+        <dc:Bounds x="936" y="140" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_ReturnRetryLimit_di" bpmnElement="Gateway_ReturnRetryLimit" isMarkerVisible="true">
-        <dc:Bounds x="1080" y="95" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ReturnEnd_di" bpmnElement="ReturnEnd">
-        <dc:Bounds x="1118" y="222" width="36" height="36" />
+        <dc:Bounds x="1118" y="282" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1095" y="265" width="83" height="14" />
+          <dc:Bounds x="1095" y="325" width="83" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0y0pq24_di" bpmnElement="Event_0y0pq24">
-        <dc:Bounds x="1118" y="332" width="36" height="36" />
+      <bpmndi:BPMNShape id="Activity_0svpfqw_di" bpmnElement="Activity_0svpfqw">
+        <dc:Bounds x="270" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_14lu3eu_di" bpmnElement="Activity_14lu3eu">
+        <dc:Bounds x="440" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ReturnDeliveryOutcome_di" bpmnElement="Gateway_ReturnDeliveryOutcome" isMarkerVisible="true">
+        <dc:Bounds x="566" y="275" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1107" y="375" width="59" height="14" />
+          <dc:Bounds x="552" y="325" width="79" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1taq6v8_di" bpmnElement="product-return-failed">
-        <dc:Bounds x="936" y="310" width="100" height="80" />
+        <dc:Bounds x="936" y="420" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0y0pq24_di" bpmnElement="Event_0y0pq24">
+        <dc:Bounds x="1132" y="442" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1121" y="485" width="59" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ReturnRetryLimit_di" bpmnElement="Gateway_ReturnRetryLimit" isMarkerVisible="true">
+        <dc:Bounds x="1235" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1294.5" y="166" width="63" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReturnConfirm_di" bpmnElement="ReturnConfirm">
+        <dc:Bounds x="660" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1py9zay_di" bpmnElement="Flow_1py9zay">
-        <di:waypoint x="208" y="240" />
-        <di:waypoint x="270" y="240" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0bnm4ik_di" bpmnElement="Flow_0bnm4ik">
-        <di:waypoint x="370" y="240" />
-        <di:waypoint x="440" y="240" />
+        <di:waypoint x="208" y="300" />
+        <di:waypoint x="270" y="300" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1rsxwv4_di" bpmnElement="Flow_1rsxwv4">
-        <di:waypoint x="716" y="240" />
-        <di:waypoint x="781" y="240" />
+        <di:waypoint x="760" y="300" />
+        <di:waypoint x="781" y="300" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1nre2tr_di" bpmnElement="Flow_1nre2tr">
-        <di:waypoint x="831" y="240" />
-        <di:waypoint x="936" y="240" />
+        <di:waypoint x="831" y="300" />
+        <di:waypoint x="936" y="300" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_06ww3ap_di" bpmnElement="Flow_06ww3ap">
-        <di:waypoint x="806" y="215" />
-        <di:waypoint x="806" y="120" />
-        <di:waypoint x="936" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1m0dg0q_di" bpmnElement="Flow_1m0dg0q">
-        <di:waypoint x="1105" y="145" />
-        <di:waypoint x="1105" y="350" />
-        <di:waypoint x="936" y="350" />
+        <di:waypoint x="806" y="275" />
+        <di:waypoint x="806" y="180" />
+        <di:waypoint x="936" y="180" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_13jcj61_di" bpmnElement="Flow_13jcj61">
-        <di:waypoint x="1036" y="240" />
-        <di:waypoint x="1118" y="240" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0p5wjr8_di" bpmnElement="Flow_0p5wjr8">
-        <di:waypoint x="1036" y="350" />
-        <di:waypoint x="1118" y="350" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0ivf9se_di" bpmnElement="Flow_0ivf9se">
-        <di:waypoint x="540" y="240" />
-        <di:waypoint x="566" y="240" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ReturnDeliveryReceived_di" bpmnElement="Flow_ReturnDeliveryReceived">
-        <di:waypoint x="616" y="240" />
-        <di:waypoint x="616" y="240" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ReturnDeliveryRetry_di" bpmnElement="Flow_ReturnDeliveryRetry">
-        <di:waypoint x="591" y="215" />
-        <di:waypoint x="591" y="40" />
-        <di:waypoint x="320" y="40" />
-        <di:waypoint x="320" y="200" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ReturnDeliveryFailed_di" bpmnElement="Flow_ReturnDeliveryFailed">
-        <di:waypoint x="591" y="265" />
-        <di:waypoint x="591" y="350" />
-        <di:waypoint x="936" y="350" />
+        <di:waypoint x="1036" y="300" />
+        <di:waypoint x="1118" y="300" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_ReturnConfirmationRecorded_di" bpmnElement="Flow_ReturnConfirmationRecorded">
-        <di:waypoint x="1036" y="120" />
-        <di:waypoint x="1080" y="120" />
+        <di:waypoint x="1036" y="180" />
+        <di:waypoint x="1235" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ReturnDeliveryRetry_di" bpmnElement="Flow_ReturnDeliveryRetry">
+        <di:waypoint x="591" y="275" />
+        <di:waypoint x="591" y="100" />
+        <di:waypoint x="320" y="100" />
+        <di:waypoint x="320" y="260" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_ReturnContributorRetry_di" bpmnElement="Flow_ReturnContributorRetry">
-        <di:waypoint x="1105" y="95" />
-        <di:waypoint x="1105" y="20" />
-        <di:waypoint x="300" y="20" />
-        <di:waypoint x="300" y="200" />
+        <di:waypoint x="1260" y="155" />
+        <di:waypoint x="1260" y="80" />
+        <di:waypoint x="300" y="80" />
+        <di:waypoint x="300" y="260" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="757" y="62" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bnm4ik_di" bpmnElement="Flow_0bnm4ik">
+        <di:waypoint x="370" y="300" />
+        <di:waypoint x="440" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ivf9se_di" bpmnElement="Flow_0ivf9se">
+        <di:waypoint x="540" y="300" />
+        <di:waypoint x="566" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ReturnDeliveryReceived_di" bpmnElement="Flow_ReturnDeliveryReceived">
+        <di:waypoint x="616" y="300" />
+        <di:waypoint x="660" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ReturnDeliveryFailed_di" bpmnElement="Flow_ReturnDeliveryFailed">
+        <di:waypoint x="591" y="325" />
+        <di:waypoint x="591" y="460" />
+        <di:waypoint x="936" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1m0dg0q_di" bpmnElement="Flow_1m0dg0q">
+        <di:waypoint x="1260" y="205" />
+        <di:waypoint x="1260" y="360" />
+        <di:waypoint x="986" y="400" />
+        <di:waypoint x="986" y="420" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1104" y="362" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0p5wjr8_di" bpmnElement="Flow_0p5wjr8">
+        <di:waypoint x="1036" y="460" />
+        <di:waypoint x="1132" y="460" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

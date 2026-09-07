@@ -40,11 +40,11 @@
       <bpmn:outgoing>Flow_16y7wkh</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_06rizry" sourceRef="Activity_1kk6lro" targetRef="Gateway_1r5rn3a" />
-    <bpmn:endEvent id="Event_0dqq52r">
+    <bpmn:endEvent id="Event_0dqq52r" name="retry">
       <bpmn:incoming>Flow_12ano3j</bpmn:incoming>
       <bpmn:messageEventDefinition id="MessageEventDefinition_00zhq0o" camunda:delegateExpression="${deliveryRetryDelegate}" />
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_12ano3j" sourceRef="Gateway_1r5rn3a" targetRef="Event_0dqq52r">
+    <bpmn:sequenceFlow id="Flow_12ano3j" name="retry if try &#60; 3" sourceRef="Gateway_1r5rn3a" targetRef="Event_0dqq52r">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status == "NOT_RECEIVED" &amp;&amp; retry &lt; 3}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="Gateway_0ra00dd">
@@ -52,23 +52,23 @@
       <bpmn:outgoing>Flow_1is12rz</bpmn:outgoing>
       <bpmn:outgoing>Flow_1jewb3z</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_16y7wkh" sourceRef="Gateway_1r5rn3a" targetRef="Gateway_0ra00dd">
+    <bpmn:sequenceFlow id="Flow_16y7wkh" name="not retry if retry &#62; 3" sourceRef="Gateway_1r5rn3a" targetRef="Gateway_0ra00dd">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${status == "NOT_RECEIVED" &amp;&amp; retry &gt;= 3}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:endEvent id="Event_0e7ftte">
+    <bpmn:endEvent id="Event_0e7ftte" name="delivery failed">
       <bpmn:documentation>if the delivery is a return process then make it delivery failed</bpmn:documentation>
       <bpmn:incoming>Flow_1is12rz</bpmn:incoming>
       <bpmn:messageEventDefinition id="MessageEventDefinition_delivery_failed" camunda:delegateExpression="${deliveryFailedDelegate}" />
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_1is12rz" sourceRef="Gateway_0ra00dd" targetRef="Event_0e7ftte">
+    <bpmn:sequenceFlow id="Flow_1is12rz" name="return process" sourceRef="Gateway_0ra00dd" targetRef="Event_0e7ftte">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${returnProcess == true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:endEvent id="Event_0lbrs5g">
+    <bpmn:endEvent id="Event_0lbrs5g" name="start return process">
       <bpmn:documentation>if the delivery is not a return process then create a new return process</bpmn:documentation>
       <bpmn:incoming>Flow_1jewb3z</bpmn:incoming>
       <bpmn:messageEventDefinition id="MessageEventDefinition_0hpgqlj" camunda:delegateExpression="${startReturnProcessDelegate}" />
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_1jewb3z" sourceRef="Gateway_0ra00dd" targetRef="Event_0lbrs5g">
+    <bpmn:sequenceFlow id="Flow_1jewb3z" name="not return process" sourceRef="Gateway_0ra00dd" targetRef="Event_0lbrs5g">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${returnProcess == false}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
   </bpmn:process>
@@ -104,17 +104,26 @@
       <bpmndi:BPMNShape id="Gateway_1r5rn3a_di" bpmnElement="Gateway_1r5rn3a" isMarkerVisible="true">
         <dc:Bounds x="685" y="245" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0dqq52r_di" bpmnElement="Event_0dqq52r">
-        <dc:Bounds x="762" y="302" width="36" height="36" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0ra00dd_di" bpmnElement="Gateway_0ra00dd" isMarkerVisible="true">
         <dc:Bounds x="765" y="185" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0e7ftte_di" bpmnElement="Event_0e7ftte">
-        <dc:Bounds x="862" y="152" width="36" height="36" />
+        <dc:Bounds x="882" y="152" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="867" y="195" width="68" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0lbrs5g_di" bpmnElement="Event_0lbrs5g">
-        <dc:Bounds x="862" y="242" width="36" height="36" />
+        <dc:Bounds x="892" y="242" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="883" y="285" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0dqq52r_di" bpmnElement="Event_0dqq52r">
+        <dc:Bounds x="792" y="332" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="799" y="375" width="22" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_01kbguj_di" bpmnElement="Flow_01kbguj">
         <di:waypoint x="218" y="190" />
@@ -137,7 +146,7 @@
         <di:waypoint x="450" y="270" />
         <di:waypoint x="530" y="270" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="437" y="239.5" width="59" height="40" />
+          <dc:Bounds x="450" y="226" width="59" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1scizho_di" bpmnElement="Flow_1scizho">
@@ -150,23 +159,35 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_12ano3j_di" bpmnElement="Flow_12ano3j">
         <di:waypoint x="710" y="295" />
-        <di:waypoint x="710" y="320" />
-        <di:waypoint x="762" y="320" />
+        <di:waypoint x="710" y="350" />
+        <di:waypoint x="792" y="350" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="724" y="333" width="65" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_16y7wkh_di" bpmnElement="Flow_16y7wkh">
         <di:waypoint x="710" y="245" />
         <di:waypoint x="710" y="210" />
         <di:waypoint x="765" y="210" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="684" y="224.5" width="84" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1is12rz_di" bpmnElement="Flow_1is12rz">
         <di:waypoint x="790" y="185" />
         <di:waypoint x="790" y="170" />
-        <di:waypoint x="862" y="170" />
+        <di:waypoint x="882" y="170" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="806" y="153" width="71" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1jewb3z_di" bpmnElement="Flow_1jewb3z">
         <di:waypoint x="790" y="235" />
         <di:waypoint x="790" y="260" />
-        <di:waypoint x="862" y="260" />
+        <di:waypoint x="892" y="260" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="802" y="268" width="89" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
