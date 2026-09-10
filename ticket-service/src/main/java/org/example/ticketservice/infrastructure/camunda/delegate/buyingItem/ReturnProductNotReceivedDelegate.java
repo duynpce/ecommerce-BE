@@ -11,7 +11,8 @@ import java.util.UUID;
 /**
  * Service task: "product not recieved" (Activity_180sl6b in returning-products process)
  * Fires when contributor reports that returned product was not received back.
- * Increments returnRetry process variable and loops back to mock return transit.
+ * Increments the shared retry counter before the BPMN process decides whether
+ * another shipper pickup is allowed.
  */
 @Slf4j
 @Component("returnProductNotReceivedDelegate")
@@ -20,13 +21,36 @@ public class ReturnProductNotReceivedDelegate implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution execution) {
-        UUID transactionId = UUID.fromString((String) execution.getVariable("transactionId"));
+        UUID transactionId = requiredUuid(execution, "transactionId");
+        int retry = numberVariable(execution, "retry");
+        int nextRetry = retry + 1;
+        execution.setVariable("retry", nextRetry);
+        // Keep the legacy variable synchronized for active instances created
+        // by an older process definition.
+        execution.setVariable("returnRetry", nextRetry);
+        execution.setVariable("deliveryOutcome", "RETRY");
 
-        Integer returnRetry = (Integer) execution.getVariable("returnRetry");
-        if (returnRetry == null) returnRetry = 0;
-        execution.setVariable("returnRetry", returnRetry + 1);
+        log.info("[returning-products] Contributor did not receive return "
+                        + "(retry={}): transactionId={}", nextRetry, transactionId);
+    }
 
-        log.info("[returning-products] Returned product not received back (returnRetry={}): transactionId={}",
-                returnRetry + 1, transactionId);
+    private int numberVariable(DelegateExecution execution, String variableName) {
+        Object value = execution.getVariable(variableName);
+        return value instanceof Number number ? number.intValue() : 0;
+    }
+
+    private UUID requiredUuid(DelegateExecution execution, String variableName) {
+        Object value = execution.getVariable(variableName);
+        if (!(value instanceof String text) || text.isBlank()) {
+            throw new IllegalStateException(
+                    "[returning-products] Missing " + variableName + " process variable");
+        }
+        try {
+            return UUID.fromString(text);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException(
+                    "[returning-products] Invalid " + variableName + "=" + text,
+                    exception);
+        }
     }
 }

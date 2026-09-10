@@ -11,6 +11,7 @@ import org.example.productservice.application.mapper.SubOrderMapper;
 import org.example.productservice.application.repository.ShopRepository;
 import org.example.productservice.application.usecase.SubOrderUseCase;
 import org.example.productservice.domain.constant.ProductSnapshotStatus;
+import org.example.productservice.domain.constant.SubOrderStatus;
 import org.example.productservice.domain.exception.ForbiddenException;
 import org.example.productservice.domain.exception.NotFoundException;
 import org.example.productservice.domain.model.Shop;
@@ -108,18 +109,6 @@ public class SubOrderController {
         return ResponseEntity.ok(ResponseDto.success(subOrderMapper.toResponse(updated), "Item snapshot status updated"));
     }
 
-    @PatchMapping("/{id}/items/{snapshotId}/isReviewed")
-    @PreAuthorize("hasAuthority('TRANSACTION:WRITE_SELF')")
-    public ResponseEntity<ResponseDto<Void>> markSnapshotIsReviewed(
-            @PathVariable UUID id,
-            @PathVariable UUID snapshotId,
-            @RequestParam Boolean isReviewed) {
-
-        subOrderUseCase.markSnapshotIsReviewed(id, snapshotId, isReviewed);
-
-        return ResponseEntity.ok(ResponseDto.success(null));
-    }
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('TRANSACTION:DELETE_SELF') or hasAuthority('TRANSACTION:DELETE_ALL')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
@@ -146,8 +135,11 @@ public class SubOrderController {
      * Transitions: PENDING → REJECTED; product stock restored.
      */
     @PatchMapping("/{id}/reject")
-    public ResponseEntity<ResponseDto<SubOrderResponse>> reject(@PathVariable UUID id) {
-        SubOrderResponse data = subOrderMapper.toResponse(subOrderUseCase.reject(id));
+    public ResponseEntity<ResponseDto<SubOrderResponse>> reject(
+            @PathVariable UUID id,
+            @RequestBody(required = false) TerminalStatusReasonRequest request) {
+        String reason = request != null ? request.reason() : null;
+        SubOrderResponse data = subOrderMapper.toResponse(subOrderUseCase.reject(id, reason));
         return ResponseEntity.ok(ResponseDto.success(data, "Sub-order rejected and stock restored"));
     }
 
@@ -174,6 +166,26 @@ public class SubOrderController {
         return ResponseEntity.ok(ResponseDto.success(data, "Sub-order handed to carrier"));
     }
 
+    /**
+     * Internal workflow transition used by ticket-service while parcels are
+     * being consolidated at the transport agency.
+     */
+    @PatchMapping("/{id}/workflow-status")
+    public ResponseEntity<ResponseDto<SubOrderResponse>> updateWorkflowStatus(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateSubOrderStatusRequest request) {
+
+        if (request.status() != SubOrderStatus.WAITING_FOR_CONSOLIDATION
+                && request.status() != SubOrderStatus.AWAITING_PICKUP) {
+            throw new IllegalArgumentException(
+                    "Workflow status must be WAITING_FOR_CONSOLIDATION or AWAITING_PICKUP");
+        }
+
+        SubOrderResponse data = subOrderMapper.toResponse(
+                subOrderUseCase.updateStatus(id, request.status()));
+        return ResponseEntity.ok(ResponseDto.success(data, "Sub-order workflow status updated"));
+    }
+
     /** Completes carrier delivery for one snapshot and records deliveredAt. */
     @PatchMapping("/{id}/items/{snapshotId}/deliver")
     public ResponseEntity<ResponseDto<SubOrderResponse>> deliver(
@@ -184,6 +196,18 @@ public class SubOrderController {
                 subOrderUseCase.deliver(id, snapshotId));
         return ResponseEntity.ok(ResponseDto.success(
                 data, "Snapshot delivered and awaiting buyer confirmation"));
+    }
+
+    /** Marks one physically received return as RETURNED and restores its stock once. */
+    @PatchMapping("/{id}/items/{snapshotId}/return")
+    public ResponseEntity<ResponseDto<SubOrderResponse>> returnSnapshot(
+            @PathVariable UUID id,
+            @PathVariable UUID snapshotId) {
+
+        SubOrder updated = subOrderUseCase.returnSnapshot(id, snapshotId);
+        return ResponseEntity.ok(ResponseDto.success(
+                subOrderMapper.toResponse(updated),
+                "Returned snapshot received and stock restored"));
     }
 
     /**
@@ -225,7 +249,8 @@ public class SubOrderController {
 
         log.info("Rejecting whole sub-order from legacy snapshot route: subOrderId={}, snapshotId={}",
                 id, snapshotId);
-        SubOrder updated = subOrderUseCase.reject(id);
+        SubOrder updated = subOrderUseCase.reject(
+                id, "Rejected through legacy snapshot route " + snapshotId);
         return ResponseEntity.ok(ResponseDto.success(
                 subOrderMapper.toResponse(updated), "Sub-order rejected and stock restored"));
     }

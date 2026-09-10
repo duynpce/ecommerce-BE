@@ -39,12 +39,17 @@ public class TransactionEntity extends BaseEntity {
     private UUID customerId;
     @Builder.Default
     private List<UUID> subOrderIds = new ArrayList<>();
+    private BigDecimal subtotalAmount;
     private BigDecimal totalAmount;
-    private UUID voucherId;
-    private String voucherCode;
+    @Builder.Default
+    private List<VoucherSnapshotEntity> vouchers = new ArrayList<>();
     @Builder.Default
     private BigDecimal discountAmount = BigDecimal.ZERO;
+    private String phoneNumber;
+    private String address;
     private String description;
     @Builder.Default
     private TransactionStatus status = TransactionStatus.PENDING;
+    private String statusReason;
+    private UUID triggerSubOrderId;
 }

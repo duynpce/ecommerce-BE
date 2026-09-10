@@ -9,6 +9,7 @@ public record SubOrderDto(
         UUID transactionId,
         UUID shopId,
         UUID customerId,
+        UUID contributorId,
         List<ProductSnapshotDto> items,
         BigDecimal subTotalAmount,
         BigDecimal shippingFee,

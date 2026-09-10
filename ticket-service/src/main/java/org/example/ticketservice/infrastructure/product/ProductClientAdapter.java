@@ -9,6 +9,7 @@ import org.example.ticketservice.infrastructure.product.dto.SubOrderDto;
 import org.example.ticketservice.infrastructure.product.dto.CancelSubOrderRequest;
 import org.example.ticketservice.infrastructure.product.dto.UpdateTransactionStatusRequest;
 import org.example.ticketservice.infrastructure.product.dto.UpdateSubOrderStatusRequest;
+import org.example.ticketservice.infrastructure.product.dto.TerminalStatusReasonRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,12 +27,18 @@ public class ProductClientAdapter implements ProductClient {
 
     @Override
     public void complete(UUID transactionId, TransactionStatus status) {
-        productHttpClient.complete(transactionId, new UpdateTransactionStatusRequest(status));
+        complete(transactionId, status, null, null);
     }
 
     @Override
-    public void returnTransaction(UUID transactionId) {
-        productHttpClient.returnTransaction(transactionId);
+    public void complete(
+            UUID transactionId,
+            TransactionStatus status,
+            String reason,
+            UUID triggerSubOrderId) {
+        productHttpClient.complete(
+                transactionId,
+                new UpdateTransactionStatusRequest(status, reason, triggerSubOrderId));
     }
 
     // ── Sub-order level ────────────────────────────────────────────────────────
@@ -42,8 +49,8 @@ public class ProductClientAdapter implements ProductClient {
     }
 
     @Override
-    public void rejectSubOrder(UUID subOrderId) {
-        productHttpClient.rejectSubOrder(subOrderId);
+    public void rejectSubOrder(UUID subOrderId, String reason) {
+        productHttpClient.rejectSubOrder(subOrderId, new TerminalStatusReasonRequest(reason));
     }
 
     @Override
@@ -57,8 +64,19 @@ public class ProductClientAdapter implements ProductClient {
     }
 
     @Override
+    public void updateSubOrderStatus(UUID subOrderId, SubOrderStatus status) {
+        productHttpClient.updateSubOrderStatus(
+                subOrderId, new UpdateSubOrderStatusRequest(status));
+    }
+
+    @Override
     public void deliverSnapshot(UUID subOrderId, UUID snapshotId) {
         productHttpClient.deliverSnapshot(subOrderId, snapshotId);
+    }
+
+    @Override
+    public void returnSnapshot(UUID subOrderId, UUID snapshotId) {
+        productHttpClient.returnSnapshot(subOrderId, snapshotId);
     }
 
     @Override
@@ -81,10 +99,6 @@ public class ProductClientAdapter implements ProductClient {
         productHttpClient.updateSnapshotStatus(subOrderId, snapshotId, status);
     }
 
-    @Override
-    public void markSnapshotIsReviewed(UUID subOrderId, UUID snapshotId, boolean isReviewed) {
-        productHttpClient.markSnapshotIsReviewed(subOrderId, snapshotId, isReviewed);
-    }
 
     @Override
     public void createProductReview(CreateProductReviewCommand command) {

@@ -9,6 +9,8 @@ import java.util.UUID;
 public interface ProductReviewRepository {
     ProductReview save(ProductReview productReview);
     Optional<ProductReview> findById(UUID id);
+    Optional<ProductReview> findByUserIdAndTransactionIdAndSnapshotId(
+            UUID userId, UUID transactionId, UUID snapshotId);
     List<ProductReview> findAllByProductId(UUID productId);
     boolean existsByUserIdAndTransactionId(UUID userId, UUID transactionId);
     void deleteById(UUID id);

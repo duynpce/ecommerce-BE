@@ -9,4 +9,7 @@ public interface AuthHttpClient {
 
     @PostExchange("api/v1/auth/local/promote/{userId}")
     void promoteAccountToContributor(@PathVariable("userId") String userId);
+
+    @PostExchange("api/v1/auth/local/promote/shipper/{userId}")
+    void promoteAccountToShipper(@PathVariable("userId") String userId);
 }

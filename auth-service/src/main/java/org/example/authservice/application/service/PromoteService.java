@@ -20,14 +20,23 @@ public class PromoteService implements PromoteUseCase {
 
     @Override
     public void promoteToContributor(String userId) {
+        addRole(userId, "CONTRIBUTOR");
+    }
+
+    @Override
+    public void promoteToShipper(String userId) {
+        addRole(userId, "SHIPPER");
+    }
+
+    private void addRole(String userId, String roleName) {
         AccountCredential account = accountCredentialRepository
                 .findByIdWithRolesAndPermissions(UUID.fromString(userId));
 
-        Role contributorRole = roleRepository
-                .findByName("CONTRIBUTOR")
-                .orElseThrow(() -> new NotFoundException("Role CONTRIBUTOR not found"));
+        Role role = roleRepository
+                .findByName(roleName)
+                .orElseThrow(() -> new NotFoundException("Role " + roleName + " not found"));
 
-        account.getRoles().add(contributorRole);
+        account.getRoles().add(role);
 
         accountCredentialRepository.save(account);
     }

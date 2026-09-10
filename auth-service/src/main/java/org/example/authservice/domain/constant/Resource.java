@@ -13,5 +13,7 @@ public enum Resource {
     PROFILE,
     SHOP,
     REVIEW,
-    CART
+    CART,
+    VOUCHER,
+    DELIVERY
 }

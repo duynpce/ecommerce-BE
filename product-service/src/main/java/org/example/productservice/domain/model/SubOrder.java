@@ -57,6 +57,7 @@ public class SubOrder extends BaseModel {
     private String note;
 
     private SubOrderStatus status;
+    private String statusReason;
 
     // ── Constructors ───────────────────────────────────────────────────────────
 
@@ -218,4 +219,7 @@ public class SubOrder extends BaseModel {
 
     public SubOrderStatus getStatus() { return status; }
     public void setStatus(SubOrderStatus status) { this.status = status; }
+
+    public String getStatusReason() { return statusReason; }
+    public void setStatusReason(String statusReason) { this.statusReason = statusReason; }
 }

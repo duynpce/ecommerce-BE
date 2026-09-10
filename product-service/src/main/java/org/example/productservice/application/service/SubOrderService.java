@@ -145,6 +145,21 @@ public class SubOrderService implements SubOrderUseCase {
             return subOrder;
         }
 
+        // Consolidation is monotonic. A late completion from another parallel
+        // Camunda branch must not move an already-ready parcel back to waiting.
+        if (oldStatus == SubOrderStatus.AWAITING_PICKUP
+                && newStatus == SubOrderStatus.WAITING_FOR_CONSOLIDATION) {
+            return subOrder;
+        }
+
+        if ((newStatus == SubOrderStatus.WAITING_FOR_CONSOLIDATION
+                || newStatus == SubOrderStatus.AWAITING_PICKUP)
+                && isTerminal(oldStatus)) {
+            throw new IllegalStateException(
+                    "Cannot move terminal sub-order " + id
+                            + " back into the delivery workflow: " + oldStatus);
+        }
+
         subOrder.setStatus(newStatus);
 
         // If sub-order is cancelled or returned, restore product stock
@@ -160,6 +175,14 @@ public class SubOrderService implements SubOrderUseCase {
         return subOrderRepository.save(subOrder);
     }
 
+    private boolean isTerminal(SubOrderStatus status) {
+        return status == SubOrderStatus.CANCELLED
+                || status == SubOrderStatus.REJECTED
+                || status == SubOrderStatus.COMPLETED
+                || status == SubOrderStatus.RETURNED
+                || status == SubOrderStatus.PARTIALLY_RETURNED;
+    }
+
     @Override
     @Transactional
     public SubOrder updateSnapshotStatus(UUID subOrderId, UUID snapshotId, ProductSnapshotStatus newStatus) {
@@ -171,7 +194,7 @@ public class SubOrderService implements SubOrderUseCase {
             return cancel(subOrderId, null);
         }
         if (newStatus == ProductSnapshotStatus.REJECTED) {
-            return reject(subOrderId);
+            return reject(subOrderId, null);
         }
 
         ProductSnapshot targetSnapshot = subOrder.getItems().stream()
@@ -207,6 +230,12 @@ public class SubOrderService implements SubOrderUseCase {
 
 
         return subOrderRepository.save(subOrder);
+    }
+
+    @Override
+    @Transactional
+    public SubOrder returnSnapshot(UUID id, UUID snapshotId) {
+        return updateSnapshotStatus(id, snapshotId, ProductSnapshotStatus.RETURNED);
     }
 
     @Override
@@ -248,7 +277,7 @@ public class SubOrderService implements SubOrderUseCase {
 
     @Override
     @Transactional
-    public SubOrder reject(UUID id) {
+    public SubOrder reject(UUID id, String reason) {
         SubOrder subOrder = findById(id);
         if (subOrder.getStatus() == SubOrderStatus.REJECTED) {
             return subOrder;
@@ -265,6 +294,7 @@ public class SubOrderService implements SubOrderUseCase {
         }
 
         subOrder.setStatus(SubOrderStatus.REJECTED);
+        subOrder.setStatusReason(normalizeReason(reason, "Rejected by the contributor."));
         for (ProductSnapshot item : subOrder.getItems()) {
             item.setStatus(ProductSnapshotStatus.REJECTED);
             productRepository.findById(item.getProductId()).ifPresent(product -> {
@@ -280,11 +310,37 @@ public class SubOrderService implements SubOrderUseCase {
     @Override
     @Transactional
     public SubOrder cancel(UUID id, String reason) {
+        return cancelInternal(id, reason, false);
+    }
+
+    @Override
+    @Transactional
+    public SubOrder cancelForTransactionTermination(UUID id, String reason) {
+        return cancelInternal(id, reason, true);
+    }
+
+    private SubOrder cancelInternal(UUID id, String reason, boolean transactionTermination) {
         SubOrder subOrder = findById(id);
 
-        if (subOrder.getStatus() == SubOrderStatus.CANCELLED
-                || subOrder.getStatus() == SubOrderStatus.REJECTED
-                || subOrder.getStatus() == SubOrderStatus.COMPLETED
+        if (subOrder.getStatus() == SubOrderStatus.CANCELLED) {
+            subOrder.setStatusReason(normalizeReason(reason, subOrder.getStatusReason()));
+            return subOrderRepository.save(subOrder);
+        }
+
+        if (subOrder.getStatus() == SubOrderStatus.REJECTED) {
+            // reject() already restored stock. A parent transaction cascade
+            // only normalizes the final status and must not restore it twice.
+            subOrder.setStatus(SubOrderStatus.CANCELLED);
+            subOrder.setStatusReason(normalizeReason(reason, subOrder.getStatusReason()));
+            for (ProductSnapshot item : subOrder.getItems()) {
+                if (item.getStatus() == ProductSnapshotStatus.REJECTED) {
+                    item.setStatus(ProductSnapshotStatus.CANCELLED);
+                }
+            }
+            return subOrderRepository.save(subOrder);
+        }
+
+        if (subOrder.getStatus() == SubOrderStatus.COMPLETED
                 || subOrder.getStatus() == SubOrderStatus.RETURNED
                 || subOrder.getStatus() == SubOrderStatus.PARTIALLY_RETURNED) {
             log.warn("[sub-order] Cancel skipped — already terminal: subOrderId={}, status={}", id, subOrder.getStatus());
@@ -294,14 +350,12 @@ public class SubOrderService implements SubOrderUseCase {
         boolean deliveryStarted = subOrder.getItems().stream()
                 .anyMatch(item -> item.getStatus() != ProductSnapshotStatus.PENDING
                         && item.getStatus() != ProductSnapshotStatus.PACKING);
-        if (deliveryStarted) {
+        if (deliveryStarted && !transactionTermination) {
             throw new IllegalStateException(
                     "Cannot cancel sub-order " + id + ": delivery has already started");
         }
 
-        if (reason != null && !reason.isBlank()) {
-            subOrder.setNote("Cancelled: " + reason.trim());
-        }
+        subOrder.setStatusReason(normalizeReason(reason, "Cancelled by the workflow."));
         subOrder.setStatus(SubOrderStatus.CANCELLED);
         for (ProductSnapshot item : subOrder.getItems()) {
             // Only restore stock for items that haven't been completed/returned/rejected yet
@@ -319,6 +373,10 @@ public class SubOrderService implements SubOrderUseCase {
         log.info("[sub-order] Cancelled and stock restored: subOrderId={}", id);
 
         return subOrderRepository.save(subOrder);
+    }
+
+    private String normalizeReason(String reason, String fallback) {
+        return reason == null || reason.isBlank() ? fallback : reason.trim();
     }
 
     @Override
@@ -364,19 +422,6 @@ public class SubOrderService implements SubOrderUseCase {
                 id, snapshotId, snapshot.getDeliveredAt());
         return subOrderRepository.save(subOrder);
     }
-
-    @Override
-    public SubOrder markSnapshotIsReviewed(UUID id, UUID snapshotId, boolean isReviewed) {
-        SubOrder subOrder = findById(id);
-        subOrder.getItems().stream()
-                .filter(item -> item.getId().equals(snapshotId))
-                .findFirst()
-                .ifPresent(item -> item.setIsReviewed(isReviewed));
-
-        log.info("[sub-order] Marked snapshot as reviewed: subOrderId={}, snapshotId={}, isReviewed={}", id, snapshotId, isReviewed);
-        return subOrderRepository.save(subOrder);
-    }
-
 
     @Override
     @Transactional

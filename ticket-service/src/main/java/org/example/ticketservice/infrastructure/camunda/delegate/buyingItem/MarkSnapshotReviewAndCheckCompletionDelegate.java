@@ -28,10 +28,9 @@ import java.util.UUID;
  *
  * <p>Responsibilities:
  * <ol>
- *   <li>Mark the current snapshot (identified by {@code currentSnapshotId}) as reviewed in
- *       Camunda process variables ({@code snapshot_reviewed_&lt;snapshotId&gt; = true}).</li>
- *   <li>Sync the reviewed status back to product-service for the current snapshot.</li>
- *   <li>Complete only the current snapshot.</li>
+ *   <li>Read whether the buyer submitted a review from
+ *       {@code snapshot_reviewed_&lt;snapshotId&gt;}.</li>
+ *   <li>Complete only the current snapshot in product-service.</li>
  *   <li>Check whether every snapshot of this sub-order is terminal.</li>
  *   <li>Set {@code allSnapshotCompleted} for the completion gateway.</li>
  * </ol>
@@ -60,20 +59,28 @@ public class MarkSnapshotReviewAndCheckCompletionDelegate implements JavaDelegat
                     "[buying-items] Missing subOrderId or snapshotId for review completion");
         }
 
-        // 1. Mark only the current snapshot as reviewed and completed.
-        execution.setVariable("snapshot_reviewed_" + currentSnapshotId, true);
+        // A browser-submitted review sets this variable while completing the
+        // review task. The boundary timer leaves it false; a timeout completes
+        // the workflow but must not claim that the buyer submitted a review.
+        boolean reviewSubmitted = Boolean.TRUE.equals(
+                execution.getVariable("snapshot_reviewed_" + currentSnapshotId));
+
+        // 1. Complete only the current snapshot.
         execution.setVariable("snapshot_status_" + currentSnapshotId, "COMPLETED");
 
-        // 2. Keep product-service synchronized. Failures propagate so Camunda
-        // can retry rather than finishing this snapshot with divergent state.
+        // ProductReviewService.create already marks a submitted review on the
+        // snapshot in the same product-service transaction. Repeating that
+        // write here used the contributor-only transaction endpoint and caused
+        // buyer review completion to fail with 403. Only the workflow status
+        // transition remains for this delegate.
         UUID subOrderId = UUID.fromString(subOrderIdStr);
         UUID snapshotId = UUID.fromString(currentSnapshotId);
-        productClient.markSnapshotIsReviewed(subOrderId, snapshotId, true);
         productClient.updateSnapshotStatus(subOrderId, snapshotId, "COMPLETED");
-        log.info("[buying-items] Snapshot review completed: subOrderId={}, snapshotId={}",
-                subOrderId, snapshotId);
+        log.info("[buying-items] Snapshot review stage completed: subOrderId={}, "
+                        + "snapshotId={}, reviewSubmitted={}",
+                subOrderId, snapshotId, reviewSubmitted);
 
-        // 3. Check whether every snapshot in this sub-order has reached a
+        // Check whether every snapshot in this sub-order has reached a
         // terminal state. Returned/cancelled/rejected snapshots do not require
         // a review, but they still count toward sub-order completion.
         List<Map<String, Object>> snapshots =
@@ -100,7 +107,7 @@ public class MarkSnapshotReviewAndCheckCompletionDelegate implements JavaDelegat
                     "[buying-items] No snapshots found for subOrderId=" + subOrderIdStr);
         }
 
-        // 4. Drive the exclusive gateway
+        // Drive the exclusive gateway
         execution.setVariable("allSnapshotCompleted", allCompleted);
 
         log.info("[buying-items] Snapshot completion check: subOrderId={}, terminal={}/{}, "

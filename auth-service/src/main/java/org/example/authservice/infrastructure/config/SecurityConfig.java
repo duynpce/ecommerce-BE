@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,6 +25,9 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -33,9 +37,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.SecretKey;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @Slf4j
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -59,7 +66,9 @@ public class SecurityConfig {
                         .authenticationEntryPoint(resourceServerAuthenticationEntryPoint())
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.decoder(jwtDecoder()))
+                        .jwt(jwt -> jwt
+                                .decoder(jwtDecoder())
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(resourceServerAuthenticationEntryPoint())
                         .bearerTokenResolver(bearerTokenResolver())
                 )
@@ -117,6 +126,28 @@ public class SecurityConfig {
     public JwtDecoder jwtDecoder() {
         SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getAccessSecret()));
         return NimbusJwtDecoder.withSecretKey(key).build();
+    }
+
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            Collection<GrantedAuthority> authorities = new ArrayList<>();
+            List<String> roles = jwt.getClaimAsStringList("roles");
+            if (roles != null) {
+                roles.stream()
+                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                        .forEach(authorities::add);
+            }
+            List<String> permissions = jwt.getClaimAsStringList("permissions");
+            if (permissions != null) {
+                permissions.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .forEach(authorities::add);
+            }
+            return authorities;
+        });
+        return converter;
     }
 
     @Bean

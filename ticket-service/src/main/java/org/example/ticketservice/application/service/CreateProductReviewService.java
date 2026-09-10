@@ -57,7 +57,9 @@ public class CreateProductReviewService implements CreateProductReviewUseCase {
         productClient.createProductReview(command);
 
         String snapshotId = command.snapshotId().toString();
-        taskService.complete(reviewTask.getId(), Map.of("currentSnapshotId", snapshotId));
+        taskService.complete(reviewTask.getId(), Map.of(
+                "currentSnapshotId", snapshotId,
+                "snapshot_reviewed_" + snapshotId, true));
 
         log.info("[buying-items] Product review created: subOrderId={}, snapshotId={}, productId={}",
                 subOrderId, command.snapshotId(), command.productId());

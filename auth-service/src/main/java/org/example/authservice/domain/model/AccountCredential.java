@@ -176,4 +176,15 @@ public class AccountCredential {
                 .map(Permission::toAuthority)
                 .collect(Collectors.toSet());
     }
+
+    public Set<String> extractEffectivePermissions() {
+        Set<String> permissions = extractPermissions();
+        if (status != AccountStatus.LIMITED) {
+            return permissions;
+        }
+
+        return permissions.stream()
+                .filter(authority -> authority.contains(":READ_"))
+                .collect(Collectors.toSet());
+    }
 }

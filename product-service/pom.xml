@@ -31,6 +31,11 @@
 		<jjwt.version>0.12.6</jjwt.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<!-- Changed from spring-boot-starter-mongodb to spring-boot-starter-data-mongodb
 		     to get MongoRepository, MongoTemplate, and auditing support -->
 		<dependency>

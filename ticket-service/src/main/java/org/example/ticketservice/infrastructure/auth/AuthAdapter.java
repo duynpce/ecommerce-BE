@@ -15,4 +15,9 @@ public class AuthAdapter implements AuthClient {
     public void promoteAccountToContributor(String userId) {
         authHttpClient.promoteAccountToContributor(userId);
     }
+
+    @Override
+    public void promoteAccountToShipper(String userId) {
+        authHttpClient.promoteAccountToShipper(userId);
+    }
 }

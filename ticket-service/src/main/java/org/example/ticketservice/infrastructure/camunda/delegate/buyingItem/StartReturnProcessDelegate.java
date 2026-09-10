@@ -62,6 +62,19 @@ public class StartReturnProcessDelegate implements JavaDelegate {
             }
         }
 
+        String contributorIdStr = (String) execution.getVariable("contributorId_" + subOrderIdStr);
+        if (contributorIdStr == null) {
+            List<Map<String, Object>> snapshots =
+                    (List<Map<String, Object>>) execution.getVariable("snapshots_" + subOrderIdStr);
+            if (snapshots != null && !snapshots.isEmpty()) {
+                contributorIdStr = (String) snapshots.get(0).get("contributorId");
+            }
+        }
+        if (contributorIdStr == null) {
+            throw new IllegalStateException(
+                    "Cannot start a return without the owning contributor: subOrderId=" + subOrderIdStr);
+        }
+
         log.info("[buying-items] Starting return process: subOrderId={}, transactionId={}, " +
                         "snapshotId={}, shopId={}",
                 subOrderIdStr, transactionIdStr, currentSnapshotId, shopIdStr);
@@ -72,12 +85,40 @@ public class StartReturnProcessDelegate implements JavaDelegate {
         returnVariables.put("transactionId", transactionIdStr);
         returnVariables.put("snapshotId",    currentSnapshotId);
         returnVariables.put("shopId",        shopIdStr);
-        returnVariables.put("returnRetry",   0);
-        returnVariables.put("status",        "PENDING");
+        returnVariables.put("contributorId", contributorIdStr);
+        Map<String, Object> currentSnapshot =
+                (Map<String, Object>) execution.getVariable("snapshot_" + currentSnapshotId);
+        returnVariables.put("productName", currentSnapshot != null ? currentSnapshot.get("name") : null);
+        // The return and its called delivery process intentionally share one
+        // retry counter so the three-attempt limit applies across both shipper
+        // and contributor-reported failures.
+        returnVariables.put("retry",          0);
+        returnVariables.put("returnRetry",    0);
+        returnVariables.put("returnProcess",  true);
+        returnVariables.put("deliveryOutcome", "PENDING");
+        returnVariables.put("status",         "PENDING");
 
         // Use subOrderId as business key so the return process can be looked up by sub-order
         String businessKey = subOrderIdStr != null ? subOrderIdStr : transactionIdStr;
+        boolean returnAlreadyActive = !runtimeService.createProcessInstanceQuery()
+                .processDefinitionKey(RETURN_PROCESS_KEY)
+                .processInstanceBusinessKey(businessKey)
+                .variableValueEquals("snapshotId", currentSnapshotId)
+                .active()
+                .list()
+                .isEmpty();
+        if (returnAlreadyActive) {
+            log.info("[buying-items] Return process already active; duplicate start skipped: "
+                            + "businessKey={}, snapshotId={}",
+                    businessKey, currentSnapshotId);
+            execution.setVariable("deliveryOutcome", "RETURN_REQUIRED");
+            execution.setVariable("status", "RETURNED");
+            return;
+        }
+
         runtimeService.startProcessInstanceByKey(RETURN_PROCESS_KEY, businessKey, returnVariables);
+        execution.setVariable("deliveryOutcome", "RETURN_REQUIRED");
+        execution.setVariable("status", "RETURNED");
 
         log.info("[buying-items] Return process '{}' started: businessKey={}, snapshotId={}, " +
                         "shopId={}, transactionId={}",

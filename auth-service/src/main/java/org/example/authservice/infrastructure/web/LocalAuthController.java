@@ -90,6 +90,13 @@ public class LocalAuthController {
         return ResponseEntity.ok(ResponseDto.success(null, "User promoted to contributor successfully"));
     }
 
+    @PreAuthorize("hasAuthority('PROMOTE:WRITE_ALL')")
+    @PostMapping("/promote/shipper/{userId}")
+    public ResponseEntity<ResponseDto<Void>> promoteToShipper(@PathVariable String userId) {
+        promoteUseCase.promoteToShipper(userId);
+        return ResponseEntity.ok(ResponseDto.success(null, "User promoted to shipper successfully"));
+    }
+
 
     @GetMapping("/me")
     public ResponseEntity<ResponseDto<String>> getMe(@CookieValue(value = "accessToken", required = false) String accessToken) {

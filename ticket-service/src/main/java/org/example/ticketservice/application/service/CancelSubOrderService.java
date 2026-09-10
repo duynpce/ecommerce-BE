@@ -7,6 +7,7 @@ import org.camunda.bpm.engine.runtime.Execution;
 import org.example.ticketservice.application.usecase.CancelSubOrderUseCase;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,8 +35,7 @@ public class CancelSubOrderService implements CancelSubOrderUseCase {
                 .messageEventSubscriptionName(CANCEL_MESSAGE)
                 .list()
                 .stream()
-                .filter(execution -> subOrderIdString.equals(
-                        runtimeService.getVariable(execution.getId(), "subOrderId")))
+                .filter(execution -> belongsToSubOrder(execution, subOrderIdString))
                 .toList();
 
         if (subscriptions.size() != 1) {
@@ -53,6 +53,13 @@ public class CancelSubOrderService implements CancelSubOrderUseCase {
                             + subOrderId + ", status=" + currentStatus);
         }
 
+        // Keep old deployed definitions working: their cancellation delegate may
+        // run after leaving the multi-instance scope and lose the local loop ID.
+        runtimeService.setVariable(
+                subscription.getProcessInstanceId(), "cancelledSubOrderId", subOrderIdString);
+        runtimeService.setVariable(
+                subscription.getProcessInstanceId(), "cancelReason", reason.trim());
+
         runtimeService.messageEventReceived(
                 CANCEL_MESSAGE,
                 subscription.getId(),
@@ -61,5 +68,22 @@ public class CancelSubOrderService implements CancelSubOrderUseCase {
 
         log.info("[buying-items] Sub-order cancelled before delivery: subOrderId={}, status={}, reason={}",
                 subOrderId, currentStatus, reason);
+    }
+
+    private boolean belongsToSubOrder(Execution subscription, String subOrderId) {
+        // The message boundary event is attached to the multi-instance body, so its
+        // subscription belongs to the transaction scope and does not carry the
+        // element variable (subOrderId) of any individual loop execution.
+        Object processSubOrderIds = runtimeService.getVariable(
+                subscription.getProcessInstanceId(), "subOrderIds");
+        if (processSubOrderIds instanceof Collection<?> ids
+                && ids.stream().anyMatch(subOrderId::equals)) {
+            return true;
+        }
+
+        // Retain compatibility with definitions that create one subscription per
+        // sub-order execution instead of one at the multi-instance body.
+        return subOrderId.equals(
+                runtimeService.getVariable(subscription.getId(), "subOrderId"));
     }
 }

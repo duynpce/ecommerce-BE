@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 /**
- * Service task: "product not received" (product-not-received).
- * Fires when the buyer reports the product was not received and retry < 3.
+ * Service task: "item not received" in {@code delivery-process}.
+ * Fires when the shipper reports an unsuccessful delivery attempt.
  * - Increments the retry counter for this snapshot iteration.
  * - Moves only this snapshot back to DELIVERING.
- * After this delegate the process loops back to the mock-delivery timer.
+ * The child process returns the retry outcome to the buying process.
  */
 @Slf4j
 @Component("productNotReceivedDelegate")
@@ -37,7 +37,16 @@ public class ProductNotReceivedDelegate implements JavaDelegate {
         // Increment retry counter so the gateway can evaluate retry >= 3
         Integer retry = (Integer) execution.getVariable("retry");
         if (retry == null) retry = 0;
-        execution.setVariable("retry", retry + 1);
+        int nextRetry = retry + 1;
+        execution.setVariable("retry", nextRetry);
+
+        if (Boolean.TRUE.equals(execution.getVariable("returnProcess"))) {
+            execution.setVariable("returnRetry", nextRetry);
+            log.info("[delivery] Return not delivered to contributor: "
+                            + "subOrderId={}, snapshotId={}, retry={}",
+                    subOrderId, snapshotId, nextRetry);
+            return;
+        }
 
         // This snapshot re-enters delivery while its sibling snapshots continue
         // independently in their own multi-instance executions.
@@ -47,6 +56,6 @@ public class ProductNotReceivedDelegate implements JavaDelegate {
 
         log.info("[buying-items] Snapshot not received; returning to DELIVERING: "
                         + "subOrderId={}, snapshotId={}, retry={}",
-                subOrderId, snapshotId, retry + 1);
+                subOrderId, snapshotId, nextRetry);
     }
 }

@@ -12,5 +12,5 @@ public interface ConfirmTransactionUseCase {
      * @param transactionId UUID of the transaction (used as process variable key)
      * @param approve       true = approve, false = reject
      */
-    void confirm(UUID transactionId, boolean approve);
+    void confirm(UUID transactionId, boolean approve, String reason);
 }
