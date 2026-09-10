@@ -1,7 +1,7 @@
 package org.example.reportservice.infrastructure.mapper;
 
 import org.example.reportservice.application.criteria.AccountSearchCriteria;
-import org.example.reportservice.infrastructure.web.dto.AccountReportFilter;
+import org.example.reportservice.infrastructure.user.dto.AccountReportFilter;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;

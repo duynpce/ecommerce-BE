@@ -51,6 +51,12 @@ public class ProductRepositoryAdapter implements ProductRepository {
     }
 
     @Override
+    public Optional<Product> findByIdWithShop(UUID productId) {
+        return springDataRepo.findByIdWithShop(productId)
+                .map(productMapper::toDomain);
+    }
+
+    @Override
     public List<Product> findByCategory(ProductCategory category) {
         return springDataRepo.findByCategory(category).stream()
                 .map(productMapper::toDomain)

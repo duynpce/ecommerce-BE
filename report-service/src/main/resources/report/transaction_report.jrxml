@@ -1,0 +1,191 @@
+<!-- Created with Jaspersoft Studio version 7.0.6.final using JasperReports Library version 7.0.6-5d2a603fdc6b3db8f842a83383e594f41891534d  -->
+<jasperReport name="transaction_report" language="java" columnCount="1" pageWidth="1200" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1160" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="b3c4d5e6-f7a8-9012-bcde-f12345678901">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="ReportTitle" class="java.lang.String"/>
+	<parameter name="page" class="java.lang.Integer"/>
+	<parameter name="totalPage" class="java.lang.Integer"/>
+	<field name="id" class="java.util.UUID"/>
+	<field name="productId" class="java.util.UUID"/>
+	<field name="contributorId" class="java.util.UUID"/>
+	<field name="customerId" class="java.util.UUID"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="quantity" class="java.lang.Integer"/>
+	<field name="totalAmount" class="java.math.BigDecimal"/>
+	<field name="status" class="org.example.reportservice.domain.constant.TransactionStatus"/>
+	<field name="createdAt" class="java.time.Instant"/>
+	<variable name="grandTotalAmount" calculation="Sum" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{totalAmount}]]></expression>
+		<initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+	</variable>
+	<variable name="totalQuantitySum" calculation="Sum" class="java.lang.Integer">
+		<expression><![CDATA[$F{quantity}]]></expression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<title height="50">
+		<element kind="textField" uuid="a1b2c3d4-0001-0001-0001-000000000001" x="0" y="0" width="1160" height="30" fontSize="18.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$P{ReportTitle} == null ? "Transaction Report" : $P{ReportTitle}]]></expression>
+		</element>
+		<element kind="textField" uuid="a1b2c3d4-0001-0001-0001-000000000002" x="0" y="30" width="1160" height="14" fontSize="9.0" pattern="yyyy-MM-dd HH:mm" italic="true" hTextAlign="Center">
+			<expression><![CDATA["Generated on " + new java.util.Date()]]></expression>
+		</element>
+	</title>
+	<columnHeader height="24">
+		<element kind="staticText" uuid="a1b2c3d4-0002-0001-0001-000000000001" mode="Opaque" x="0" y="0" width="40" height="22" backcolor="#3B5266" fontSize="9.0" bold="true" vTextAlign="Middle">
+			<paragraph leftIndent="4"/>
+			<text><![CDATA[#]]></text>
+			<box>
+				<pen lineWidth="0.5" lineColor="#FFFFFF"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a1b2c3d4-0002-0001-0001-000000000002" mode="Opaque" x="40" y="0" width="220" height="22" backcolor="#3B5266" fontSize="9.0" bold="true" vTextAlign="Middle">
+			<paragraph leftIndent="4"/>
+			<text><![CDATA[Transaction ID]]></text>
+			<box>
+				<pen lineWidth="0.5" lineColor="#FFFFFF"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a1b2c3d4-0002-0001-0001-000000000003" mode="Opaque" x="260" y="0" width="220" height="22" backcolor="#3B5266" fontSize="9.0" bold="true" vTextAlign="Middle">
+			<paragraph leftIndent="4"/>
+			<text><![CDATA[Customer ID]]></text>
+			<box>
+				<pen lineWidth="0.5" lineColor="#FFFFFF"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a1b2c3d4-0002-0001-0001-000000000004" mode="Opaque" x="480" y="0" width="280" height="22" backcolor="#3B5266" fontSize="9.0" bold="true" vTextAlign="Middle">
+			<paragraph leftIndent="4"/>
+			<text><![CDATA[Description]]></text>
+			<box>
+				<pen lineWidth="0.5" lineColor="#FFFFFF"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a1b2c3d4-0002-0001-0001-000000000005" mode="Opaque" x="760" y="0" width="70" height="22" backcolor="#3B5266" fontSize="9.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<paragraph leftIndent="4"/>
+			<text><![CDATA[Qty]]></text>
+			<box>
+				<pen lineWidth="0.5" lineColor="#FFFFFF"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a1b2c3d4-0002-0001-0001-000000000006" mode="Opaque" x="830" y="0" width="120" height="22" backcolor="#3B5266" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<paragraph leftIndent="4" rightIndent="4"/>
+			<text><![CDATA[Total Amount]]></text>
+			<box>
+				<pen lineWidth="0.5" lineColor="#FFFFFF"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a1b2c3d4-0002-0001-0001-000000000007" mode="Opaque" x="950" y="0" width="100" height="22" backcolor="#3B5266" fontSize="9.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<paragraph leftIndent="4"/>
+			<text><![CDATA[Status]]></text>
+			<box>
+				<pen lineWidth="0.5" lineColor="#FFFFFF"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a1b2c3d4-0002-0001-0001-000000000008" mode="Opaque" x="1050" y="0" width="110" height="22" backcolor="#3B5266" fontSize="9.0" bold="true" vTextAlign="Middle">
+			<paragraph leftIndent="4"/>
+			<text><![CDATA[Created At]]></text>
+			<box>
+				<pen lineWidth="0.5" lineColor="#FFFFFF"/>
+			</box>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<element kind="textField" uuid="a1b2c3d4-0003-0001-0001-000000000001" x="0" y="0" width="40" height="18" fontSize="8.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$V{REPORT_COUNT}]]></expression>
+				<box bottomPadding="2">
+					<pen lineWidth="0.25" lineColor="#CCCCCC"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="a1b2c3d4-0003-0001-0001-000000000002" x="40" y="0" width="220" height="18" fontSize="8.0" blankWhenNull="true" vTextAlign="Middle">
+				<paragraph leftIndent="4"/>
+				<expression><![CDATA[$F{id}]]></expression>
+				<box bottomPadding="2">
+					<pen lineWidth="0.25" lineColor="#CCCCCC"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="a1b2c3d4-0003-0001-0001-000000000003" x="260" y="0" width="220" height="18" fontSize="8.0" blankWhenNull="true" vTextAlign="Middle">
+				<paragraph leftIndent="4"/>
+				<expression><![CDATA[$F{customerId}]]></expression>
+				<box bottomPadding="2">
+					<pen lineWidth="0.25" lineColor="#CCCCCC"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="a1b2c3d4-0003-0001-0001-000000000004" x="480" y="0" width="280" height="18" fontSize="8.0" blankWhenNull="true" vTextAlign="Middle">
+				<paragraph leftIndent="4"/>
+				<expression><![CDATA[$F{description}]]></expression>
+				<box bottomPadding="2">
+					<pen lineWidth="0.25" lineColor="#CCCCCC"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="a1b2c3d4-0003-0001-0001-000000000005" x="760" y="0" width="70" height="18" fontSize="8.0" blankWhenNull="true" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{quantity}]]></expression>
+				<box bottomPadding="2">
+					<pen lineWidth="0.25" lineColor="#CCCCCC"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="a1b2c3d4-0003-0001-0001-000000000006" x="830" y="0" width="120" height="18" fontSize="8.0" pattern="#,##0.00" blankWhenNull="true" hTextAlign="Right" vTextAlign="Middle">
+				<paragraph rightIndent="4"/>
+				<expression><![CDATA[$F{totalAmount}]]></expression>
+				<box bottomPadding="2">
+					<pen lineWidth="0.25" lineColor="#CCCCCC"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="a1b2c3d4-0003-0001-0001-000000000007" x="950" y="0" width="100" height="18" fontSize="8.0" blankWhenNull="true" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{status}]]></expression>
+				<box bottomPadding="2">
+					<pen lineWidth="0.25" lineColor="#CCCCCC"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="a1b2c3d4-0003-0001-0001-000000000008" x="1050" y="0" width="110" height="18" fontSize="8.0" blankWhenNull="true" vTextAlign="Middle">
+				<paragraph leftIndent="4"/>
+				<expression><![CDATA[$F{createdAt} != null
+					? java.time.LocalDate.ofInstant($F{createdAt}, java.time.ZoneId.systemDefault()).toString()
+					: ""]]></expression>
+				<box bottomPadding="2">
+					<pen lineWidth="0.25" lineColor="#CCCCCC"/>
+				</box>
+			</element>
+		</band>
+	</detail>
+	<columnFooter height="30">
+		<element kind="staticText" uuid="a1b2c3d4-0004-0001-0001-000000000001" mode="Opaque" x="0" y="0" width="760" height="22" backcolor="#E8ECF0" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<paragraph rightIndent="8"/>
+			<text><![CDATA[Total Qty:]]></text>
+			<box>
+				<pen lineWidth="0.5" lineColor="#CCCCCC"/>
+			</box>
+		</element>
+		<element kind="textField" uuid="a1b2c3d4-0004-0001-0001-000000000002" mode="Opaque" x="760" y="0" width="70" height="22" backcolor="#E8ECF0" fontSize="9.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$V{totalQuantitySum}]]></expression>
+			<box>
+				<pen lineWidth="0.5" lineColor="#CCCCCC"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a1b2c3d4-0004-0001-0001-000000000003" mode="Opaque" x="830" y="0" width="120" height="22" backcolor="#E8ECF0" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<paragraph rightIndent="4"/>
+			<text><![CDATA[Grand Total:]]></text>
+			<box>
+				<pen lineWidth="0.5" lineColor="#CCCCCC"/>
+			</box>
+		</element>
+		<element kind="textField" uuid="a1b2c3d4-0004-0001-0001-000000000004" mode="Opaque" x="950" y="0" width="210" height="22" backcolor="#E8ECF0" fontSize="11.0" pattern="#,##0.00" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<paragraph rightIndent="8"/>
+			<expression><![CDATA[$V{grandTotalAmount}]]></expression>
+			<box>
+				<pen lineWidth="0.5" lineColor="#CCCCCC"/>
+			</box>
+		</element>
+	</columnFooter>
+	<pageFooter height="16">
+		<element kind="textField" uuid="a1b2c3d4-0005-0001-0001-000000000001" x="0" y="2" width="580" height="14" fontSize="9.0" italic="true">
+			<expression><![CDATA["Generated on " + new java.util.Date()]]></expression>
+		</element>
+		<element kind="textField" uuid="a1b2c3d4-0005-0001-0001-000000000002" x="980" y="2" width="180" height="14" fontSize="9.0" hTextAlign="Right">
+			<expression><![CDATA["Page " + $P{page} + " of " + $P{totalPage}]]></expression>
+		</element>
+	</pageFooter>
+	<noData height="40">
+		<element kind="staticText" uuid="a1b2c3d4-0006-0001-0001-000000000001" x="0" y="0" width="1160" height="30" fontSize="11.0" italic="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[No transactions matched the given filter.]]></text>
+		</element>
+	</noData>
+</jasperReport>

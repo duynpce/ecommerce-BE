@@ -1,6 +1,7 @@
 package org.example.ticketservice.infrastructure.web.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 /**
  * Request body for POST /transaction-tickets/{transactionId}/confirm
@@ -9,5 +10,8 @@ import jakarta.validation.constraints.NotNull;
 public record ConfirmTransactionRequest(
 
         @NotNull(message = "approve cannot be null")
-        Boolean approve
+        Boolean approve,
+
+        @Size(max = 1000, message = "Reason cannot exceed 1000 characters")
+        String reason
 ) {}

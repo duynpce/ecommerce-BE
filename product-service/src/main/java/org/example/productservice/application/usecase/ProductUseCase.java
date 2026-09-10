@@ -14,4 +14,6 @@ public interface ProductUseCase {
     Product update(UpdateProductCommand command);
     void delete(UUID id, String accessToken);
     PageCommand<Product> search(ProductSearchCriteria criteria);
+
+    void censor(UUID id, Boolean isApproved);
 }

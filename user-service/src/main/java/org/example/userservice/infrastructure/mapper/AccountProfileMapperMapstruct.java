@@ -16,6 +16,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
+import org.example.userservice.application.command.UpdateAccountProfileCommand;
+import org.example.userservice.infrastructure.web.dto.AccountProfileResponse;
+import org.example.userservice.infrastructure.web.dto.UpdateAccountProfileRequest;
+
 @Mapper(componentModel = "spring")
 public interface AccountProfileMapperMapstruct {
 
@@ -28,11 +32,16 @@ public interface AccountProfileMapperMapstruct {
     @Mapping(target = "id", source = "userId")
     CreateProfileAccountCommand toCommand(CreateAccountProfileRequest request);
 
+    UpdateAccountProfileCommand toCommand(UpdateAccountProfileRequest request);
+
     @Mapping(target = "phoneNumber", source = "phoneNumber", qualifiedByName = "phoneNumberToString")
     AccountProfileEntity toEntity(AccountProfile accountProfile);
 
     @Mapping(target = "phoneNumber", source = "phoneNumber", qualifiedByName = "phoneNumberToString")
     AccountProfileReportResponsive toReportResponse(AccountProfile accountProfile);
+
+    @Mapping(target = "phoneNumber", source = "phoneNumber", qualifiedByName = "phoneNumberToString")
+    AccountProfileResponse toResponse(AccountProfile accountProfile);
 
     @Mapping(target = "createdFrom", source = "createdFrom", qualifiedByName = "localDateToInstantStartOfDay")
     @Mapping(target = "createdTo", source = "createdTo", qualifiedByName = "localDateToInstantEndOfDay")

@@ -1,5 +1,8 @@
 package org.example.ticketservice.application.usecase;
 
+import org.example.ticketservice.infrastructure.product.dto.SubOrderDto;
+
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -10,8 +13,8 @@ public interface StartBuyingProcedureUseCase {
 
     /**
      * @param transactionId  UUID of the transaction (from product-service)
-     * @param contributorId  UUID of the product contributor (seller)
      * @param customerId     UUID of the buyer
+     * @param subOrders      List of sub-orders with snapshots
      */
-    void start(UUID transactionId, UUID contributorId, UUID customerId);
+    void start(UUID transactionId, UUID customerId, List<SubOrderDto> subOrders);
 }

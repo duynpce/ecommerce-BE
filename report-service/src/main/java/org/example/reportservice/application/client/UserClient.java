@@ -1,7 +1,7 @@
 package org.example.reportservice.application.client;
 
-import org.example.reportservice.infrastructure.web.dto.AccountReportFilter;
-import org.example.reportservice.infrastructure.web.dto.AccountReportResponsive;
+import org.example.reportservice.infrastructure.user.dto.AccountReportFilter;
+import org.example.reportservice.infrastructure.user.dto.AccountReportResponsive;
 
 import java.util.List;
 

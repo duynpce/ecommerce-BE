@@ -3,7 +3,8 @@ package org.example.reportservice.infrastructure.web;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.reportservice.application.usecase.JasperReportUseCase;
-import org.example.reportservice.infrastructure.web.dto.AccountReportFilter;
+import org.example.reportservice.infrastructure.product.dto.TransactionReportFilter;
+import org.example.reportservice.infrastructure.user.dto.AccountReportFilter;
 import org.example.reportservice.infrastructure.web.dto.ReportFilePropRes;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -36,6 +37,23 @@ public class ReportController {
 
 
         ReportFilePropRes reportFilePropRes = jasperReportUseCase.generateAccountReport(filter);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(ContentDisposition.attachment().filename(reportFilePropRes.fileName()).build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(reportFilePropRes.mediaType())
+                .body((reportFilePropRes.fileBytes()));
+    }
+
+    @GetMapping("/transactions/export")
+    @PreAuthorize("hasAuthority('EXPORT:DOWNLOAD_SELF')")
+    public ResponseEntity<byte[]> exportTransactionReport(
+        @Valid @ModelAttribute TransactionReportFilter filter
+    ) throws Exception {
+
+        ReportFilePropRes reportFilePropRes = jasperReportUseCase.generateTransactionReport(filter);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDisposition(ContentDisposition.attachment().filename(reportFilePropRes.fileName()).build());

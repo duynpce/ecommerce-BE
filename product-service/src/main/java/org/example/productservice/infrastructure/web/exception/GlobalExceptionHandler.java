@@ -51,9 +51,14 @@ public class GlobalExceptionHandler {
 
     // ── 404 - Not Found ──────────────────────────────────────────────────────
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ResponseDto<Void>> handleNotFound(ResourceNotFoundException ex) {
+    @ExceptionHandler({ResourceNotFoundException.class, NotFoundException.class})
+    public ResponseEntity<ResponseDto<Void>> handleNotFound(RuntimeException ex) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidStateException.class)
+    public ResponseEntity<ResponseDto<Void>> handleInvalidState(InvalidStateException ex) {
+        return build(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
     }
 
     // ── 409 - Conflict ───────────────────────────────────────────────────────
@@ -70,6 +75,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<ResponseDto<Void>> handleNullPointer(NullPointerException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ResponseDto<Void>> handleIllegalState(IllegalStateException ex) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 }

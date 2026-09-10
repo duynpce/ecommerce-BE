@@ -5,6 +5,7 @@
 
     <process-archive>
         <resource>bpmn/buying-items-procedure.bpmn</resource>
+        <resource>bpmn/delivery-process.bpmn</resource>
         <resource>bpmn/promote-customer-contributor-procedure.bpmn</resource>
         <resource>bpmn/returning-items.bpmn</resource>
         <properties>

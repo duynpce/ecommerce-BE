@@ -10,6 +10,7 @@ import org.example.productservice.application.criteria.ProductSearchCriteria;
 import org.example.productservice.application.mapper.ProductMapper;
 import org.example.productservice.application.usecase.ProductUseCase;
 import org.example.productservice.application.client.TokenGeneratorClient;
+import org.example.productservice.domain.constant.ProductStatus;
 import org.example.productservice.domain.model.Product;
 import org.example.productservice.infrastructure.web.dto.*;
 import org.example.productservice.infrastructure.web.dto.product.CreateProductRequest;
@@ -62,7 +63,7 @@ public class ProductController {
         UUID contributorId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
 
         // // get product  from the logged-in contributor with pagination
-        ProductSearchCriteria criteria = new ProductSearchCriteria(null,null, null, contributorId, null, null, null, null, paginationDto.getPage(), paginationDto.getLimit());
+        ProductSearchCriteria criteria = new ProductSearchCriteria(null,null, null, contributorId, null, null, null, null,null, paginationDto.getPage(), paginationDto.getLimit());
 
         PageCommand<Product> page = productUseCase.search(criteria);
         List<ProductResponse> data = page.getContent().stream()
@@ -79,7 +80,7 @@ public class ProductController {
     @GetMapping("/search")
     public ResponseEntity<ResponseDto<List<ProductResponse>>> search(
             @Valid @ModelAttribute ProductFilter filter) {
-        ProductSearchCriteria criteria = productMapper.toCriteria(filter);
+        ProductSearchCriteria criteria = productMapper.toCriteria(filter, ProductStatus.ACTIVE);
         PageCommand<Product> page = productUseCase.search(criteria);
 
         List<ProductResponse> data = page.getContent().stream()
@@ -95,6 +96,26 @@ public class ProductController {
         return ResponseEntity.ok(ResponseDto.success(data, "Products fetched successfully", meta));
     }
 
+    @PreAuthorize("hasAuthority('PRODUCT:WRITE_ALL')")
+    @GetMapping("/pending")
+    public ResponseEntity<ResponseDto<List<ProductResponse>>> findPendingProducts(
+            @Valid @ModelAttribute ProductFilter filter) {
+        ProductSearchCriteria criteria = productMapper.toCriteria(filter, ProductStatus.PENDING);
+        PageCommand<Product> page = productUseCase.search(criteria);
+
+        List<ProductResponse> data = page.getContent().stream()
+                .map(productMapper::toResponse)
+                .toList();
+
+        MetaDto meta = MetaDto.builder()
+                .totalItems(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .paginationDto(new PaginationDto(filter.page(), filter.limit()))
+                .build();
+
+        return ResponseEntity.ok(ResponseDto.success(data, "Pending products fetched successfully", meta));
+    }
+
     @PreAuthorize("hasAuthority('PRODUCT:WRITE_SELF')")
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDto<ProductResponse>> update(
@@ -106,6 +127,18 @@ public class ProductController {
         UpdateProductCommand command = productMapper.toCommand(request, id, senderId);
         ProductResponse data = productMapper.toResponse(productUseCase.update(command));
         return ResponseEntity.ok(ResponseDto.success(data));
+    }
+
+    @PreAuthorize("hasAuthority('PRODUCT:WRITE_ALL')")
+    @PatchMapping("/censor/{id}")
+    public ResponseEntity<ResponseDto<Void>> censorProduct(
+            @PathVariable UUID id,
+            @RequestParam Boolean isApproved
+            ) {
+
+        productUseCase.censor(id, isApproved);
+
+        return ResponseEntity.ok(ResponseDto.success(null, "Product censored successfully"));
     }
 
 

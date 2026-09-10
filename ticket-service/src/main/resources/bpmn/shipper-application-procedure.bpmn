@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_shipper_application" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="shipper-application-procedure" name="Shipper Application Procedure" isExecutable="true">
+    <bpmn:startEvent id="shipper-application-submitted" name="Shipper Application Submitted">
+      <bpmn:documentation>A customer submits identity, driving-license, vehicle, and contact details for administrative review.</bpmn:documentation>
+      <bpmn:outgoing>Flow_shipper_start_review</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="review-shipper-application" name="Review Shipper Application" camunda:candidateGroups="ADMIN">
+      <bpmn:documentation>An administrator verifies the applicant's identity, driver license, vehicle details, and phone number, then sets approved to true or false.</bpmn:documentation>
+      <bpmn:incoming>Flow_shipper_start_review</bpmn:incoming>
+      <bpmn:outgoing>Flow_shipper_review_decision</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="shipper-application-decision" name="Application Approved?">
+      <bpmn:incoming>Flow_shipper_review_decision</bpmn:incoming>
+      <bpmn:outgoing>Flow_shipper_approved</bpmn:outgoing>
+      <bpmn:outgoing>Flow_shipper_rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="grant-shipper-role" name="Approve Application and Grant Shipper Role" camunda:delegateExpression="${approveShipperApplicationDelegate}">
+      <bpmn:documentation>Marks the ticket APPROVED and adds the SHIPPER role to the applicant's auth account.</bpmn:documentation>
+      <bpmn:incoming>Flow_shipper_approved</bpmn:incoming>
+      <bpmn:outgoing>Flow_shipper_approval_end</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="reject-shipper-application" name="Reject Shipper Application" camunda:delegateExpression="${rejectShipperApplicationDelegate}">
+      <bpmn:documentation>Marks the ticket REJECTED without changing the applicant's roles.</bpmn:documentation>
+      <bpmn:incoming>Flow_shipper_rejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_shipper_rejection_end</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="shipper-application-approved" name="Shipper Role Granted">
+      <bpmn:documentation>The applicant can sign in again to receive SHIPPER delivery permissions.</bpmn:documentation>
+      <bpmn:incoming>Flow_shipper_approval_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="shipper-application-rejected" name="Application Rejected">
+      <bpmn:documentation>The application is closed and the user may submit a corrected application later.</bpmn:documentation>
+      <bpmn:incoming>Flow_shipper_rejection_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_shipper_start_review" sourceRef="shipper-application-submitted" targetRef="review-shipper-application" />
+    <bpmn:sequenceFlow id="Flow_shipper_review_decision" sourceRef="review-shipper-application" targetRef="shipper-application-decision" />
+    <bpmn:sequenceFlow id="Flow_shipper_approved" name="Approved" sourceRef="shipper-application-decision" targetRef="grant-shipper-role">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_shipper_rejected" name="Rejected" sourceRef="shipper-application-decision" targetRef="reject-shipper-application">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_shipper_approval_end" sourceRef="grant-shipper-role" targetRef="shipper-application-approved" />
+    <bpmn:sequenceFlow id="Flow_shipper_rejection_end" sourceRef="reject-shipper-application" targetRef="shipper-application-rejected" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_shipper_application">
+    <bpmndi:BPMNPlane id="BPMNPlane_shipper_application" bpmnElement="shipper-application-procedure">
+      <bpmndi:BPMNShape id="Start_shipper_di" bpmnElement="shipper-application-submitted"><dc:Bounds x="160" y="232" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Review_shipper_di" bpmnElement="review-shipper-application"><dc:Bounds x="250" y="210" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Decision_shipper_di" bpmnElement="shipper-application-decision" isMarkerVisible="true"><dc:Bounds x="430" y="225" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Approve_shipper_di" bpmnElement="grant-shipper-role"><dc:Bounds x="540" y="120" width="130" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Reject_shipper_di" bpmnElement="reject-shipper-application"><dc:Bounds x="540" y="300" width="130" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Approved_shipper_di" bpmnElement="shipper-application-approved"><dc:Bounds x="730" y="142" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Rejected_shipper_di" bpmnElement="shipper-application-rejected"><dc:Bounds x="730" y="322" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_shipper_start_review_di" bpmnElement="Flow_shipper_start_review"><di:waypoint x="196" y="250" /><di:waypoint x="250" y="250" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_shipper_review_decision_di" bpmnElement="Flow_shipper_review_decision"><di:waypoint x="370" y="250" /><di:waypoint x="430" y="250" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_shipper_approved_di" bpmnElement="Flow_shipper_approved"><di:waypoint x="455" y="225" /><di:waypoint x="455" y="160" /><di:waypoint x="540" y="160" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_shipper_rejected_di" bpmnElement="Flow_shipper_rejected"><di:waypoint x="455" y="275" /><di:waypoint x="455" y="340" /><di:waypoint x="540" y="340" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_shipper_approval_end_di" bpmnElement="Flow_shipper_approval_end"><di:waypoint x="670" y="160" /><di:waypoint x="730" y="160" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_shipper_rejection_end_di" bpmnElement="Flow_shipper_rejection_end"><di:waypoint x="670" y="340" /><di:waypoint x="730" y="340" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

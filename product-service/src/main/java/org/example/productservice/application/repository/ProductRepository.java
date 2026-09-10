@@ -12,6 +12,7 @@ import java.util.UUID;
 public interface ProductRepository {
     Product save(Product product);
     Optional<Product> findById(UUID id);
+    Optional<Product> findByIdWithShop(UUID productId);
     List<Product> findByContributorId(UUID contributorId);
     List<Product> findByCategory(ProductCategory category);
     boolean existsById(UUID id);

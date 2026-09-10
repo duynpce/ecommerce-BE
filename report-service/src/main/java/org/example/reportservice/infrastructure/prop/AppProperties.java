@@ -16,4 +16,5 @@ public class AppProperties {
      * UserHttpClient's @GetExchange paths already include /api/v1/users/...
      */
     private String userServiceUrl;
+    private String productServiceUrl;
 }

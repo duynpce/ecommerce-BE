@@ -4,7 +4,7 @@
 # =============================================================================
 # Stage 1 — Compile & package
 # =============================================================================
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
+FROM public.ecr.aws/docker/library/maven:3.9.6-eclipse-temurin-21-alpine AS builder
 WORKDIR /build
 
 COPY pom.xml .
@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/root/.m2,sharing=locked \
 # =============================================================================
 # Stage 2 — Extract Spring Boot layers
 # =============================================================================
-FROM eclipse-temurin:21-jre-alpine AS extractor
+FROM public.ecr.aws/docker/library/eclipse-temurin:21-jre-alpine AS extractor
 WORKDIR /extract
 
 COPY --from=builder /build/target/*.jar app.jar
@@ -28,9 +28,9 @@ RUN java -Djarmode=layertools -jar app.jar extract
 # =============================================================================
 # Stage 3 — Minimal runtime image
 # =============================================================================
-FROM eclipse-temurin:21-jre-alpine
+FROM public.ecr.aws/docker/library/eclipse-temurin:21-jre-alpine
 
-LABEL org.opencontainers.image.title="report-service" \
+LABEL org.opencontainers.image.title="user-service" \
       org.opencontainers.image.base.name="eclipse-temurin:21-jre-alpine"
 
 WORKDIR /app

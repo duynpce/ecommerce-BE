@@ -1,22 +1,28 @@
 package org.example.productservice.infrastructure.web.dto.transaction;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-
-import java.math.BigDecimal;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public record CreateTransactionRequest(
+        @NotEmpty List<@Valid CreateTransactionItemRequest> items,
+        @Size(max = 3) List<@NotBlank @Size(max = 50) String> voucherCodes,
+        @NotBlank
+        @Size(max = 25)
+        @Pattern(regexp = "^[0-9+()\\-\\s]{7,25}$", message = "must be a valid phone number")
+        String phoneNumber,
+        @NotBlank @Size(max = 500) String address
+) {
+    public List<CreateTransactionItemRequest> getItemList() {
+        if (items != null && !items.isEmpty()) {
+            return items;
+        }
 
-        @NotNull(message = "Product ID cannot be null")
-        UUID productId,
-
-        @NotNull(message = "Quantity cannot be null")
-        @Min(value = 1, message = "Quantity must be at least 1")
-        Integer quantity,
-
-        @NotNull(message = "Price cannot be null")
-        @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
-        BigDecimal price
-) {}
+        return new ArrayList<>();
+    }
+}

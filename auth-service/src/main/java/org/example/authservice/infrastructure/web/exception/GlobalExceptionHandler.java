@@ -51,9 +51,14 @@ public class GlobalExceptionHandler {
 
     // ── 404 - Not Found ──────────────────────────────────────────────────────
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ResponseDto<Void>> handleNotFound(ResourceNotFoundException ex) {
+    @ExceptionHandler({ResourceNotFoundException.class, NotFoundException.class})
+    public ResponseEntity<ResponseDto<Void>> handleNotFound(RuntimeException ex) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ResponseDto<Void>> handleDomainValidation(ValidationException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     // ── 409 - Conflict ───────────────────────────────────────────────────────

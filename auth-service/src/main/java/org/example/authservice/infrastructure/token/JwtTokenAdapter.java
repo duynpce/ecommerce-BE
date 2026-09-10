@@ -142,6 +142,7 @@ public class JwtTokenAdapter implements TokenGeneratorClient {
         return Jwts.builder()
                 .subject(username)
                 .claim(CLAIM_USER_ID, userId.toString())
+                .claim(CLAIM_ROLES, normalizeClaims(roles))
                 .claim(CLAIM_PERMISSIONS, normalizeClaims(permissions))
                 .issuedAt(new Date(now))
                 .expiration(new Date(now + expirationMs))

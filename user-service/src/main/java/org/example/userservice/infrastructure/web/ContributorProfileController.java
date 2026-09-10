@@ -8,12 +8,16 @@ import org.example.userservice.application.usecase.ContributorProfileUseCase;
 import org.example.userservice.domain.model.ContributorProfile;
 import org.example.userservice.infrastructure.web.dto.ContributorProfileResponse;
 import org.example.userservice.infrastructure.web.dto.CreateContributorProfileRequest;
+import org.example.userservice.infrastructure.web.dto.UpdateContributorProfileRequest;
 import org.example.userservice.infrastructure.web.dto.ResponseDto;
+import org.example.userservice.application.command.UpdateContributorProfileCommand;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+
+import org.example.userservice.application.client.TokenGeneratorClient;
 
 @Slf4j
 @RestController
@@ -23,6 +27,7 @@ public class ContributorProfileController {
 
     private final ContributorProfileUseCase contributorProfileUseCase;
     private final ContributorProfileMapper contributorProfileMapper;
+    private final TokenGeneratorClient tokenGeneratorClient;
 
     @PostMapping
     public ResponseEntity<ResponseDto<Void>> createContributorProfile(
@@ -31,6 +36,30 @@ public class ContributorProfileController {
         return new ResponseEntity<>(
                 ResponseDto.success(null, "Contributor profile created successfully"),
                 HttpStatus.CREATED
+        );
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ResponseDto<ContributorProfileResponse>> getMyContributorProfile(
+            @CookieValue(required = false, value = "accessToken") String accessToken) {
+        UUID accountId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
+        ContributorProfile contributorProfile = contributorProfileUseCase.getByAccountId(accountId);
+        return ResponseEntity.ok(
+                ResponseDto.success(contributorProfileMapper.toResponse(contributorProfile))
+        );
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<ResponseDto<ContributorProfileResponse>> updateMyContributorProfile(
+            @CookieValue(required = false, value = "accessToken") String accessToken,
+            @Valid @RequestBody UpdateContributorProfileRequest request) {
+        UUID accountId = tokenGeneratorClient.extractUserIdFromAccessToken(accessToken);
+        ContributorProfile updated = contributorProfileUseCase.updateContributorProfile(
+                accountId,
+                new UpdateContributorProfileCommand(request.bankName(), request.bankAccountNumber(), request.taxId())
+        );
+        return ResponseEntity.ok(
+                ResponseDto.success(contributorProfileMapper.toResponse(updated), "Contributor profile updated successfully")
         );
     }
 

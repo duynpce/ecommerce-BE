@@ -12,11 +12,13 @@ import org.example.ticketservice.infrastructure.prop.AppProperties;
 import org.example.ticketservice.infrastructure.user.UserHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.support.WebClientAdapter;
@@ -67,14 +69,15 @@ public class HttpClientConfig {
                 .baseUrl(baseUrl)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .filter((request, next) -> {
-                    String token = resolveAccessTokenFromCookie();
+                    String token = resolveAccessTokenFromRequest();
                     if (token == null) {
                         return next.exchange(request);
                     }
                     return next.exchange(
-                            org.springframework.web.reactive.function.client.ClientRequest
+                            ClientRequest
                                     .from(request)
                                     .cookie(ACCESS_TOKEN_COOKIE, token)
+                                    .headers(headers -> headers.setBearerAuth(token))
                                     .build()
                     );
                 })
@@ -82,7 +85,7 @@ public class HttpClientConfig {
                 .build();
     }
 
-    private String resolveAccessTokenFromCookie() {
+    String resolveAccessTokenFromRequest() {
         ServletRequestAttributes attrs =
                 (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attrs == null) {
@@ -90,14 +93,24 @@ public class HttpClientConfig {
         }
         HttpServletRequest request = attrs.getRequest();
         Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return null;
+        if (cookies != null) {
+            String cookieToken = Arrays.stream(cookies)
+                    .filter(c -> ACCESS_TOKEN_COOKIE.equals(c.getName()))
+                    .map(Cookie::getValue)
+                    .filter(value -> !value.isBlank())
+                    .findFirst()
+                    .orElse(null);
+            if (cookieToken != null) {
+                return cookieToken;
+            }
         }
-        return Arrays.stream(cookies)
-                .filter(c -> ACCESS_TOKEN_COOKIE.equals(c.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
+
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authorization != null && authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            String bearerToken = authorization.substring(7).trim();
+            return bearerToken.isEmpty() ? null : bearerToken;
+        }
+        return null;
     }
 
     private Mono<? extends Throwable> handleErrorResponse(ClientResponse clientResponse) {

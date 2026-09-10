@@ -1,6 +1,7 @@
 package org.example.productservice.application.criteria;
 
 import org.example.productservice.domain.constant.ProductCategory;
+import org.example.productservice.domain.constant.ProductStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -15,6 +16,7 @@ public record ProductSearchCriteria(
         String name,
         ProductCategory category,
         UUID contributorId,
+        ProductStatus status,
         BigDecimal minPrice,
         BigDecimal maxPrice,
         Instant createdFrom,

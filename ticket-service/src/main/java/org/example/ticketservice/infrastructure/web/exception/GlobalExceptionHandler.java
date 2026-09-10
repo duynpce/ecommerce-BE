@@ -56,6 +56,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ResponseDto<Void>> handleNotFound(NotFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     // ── 409 - Conflict ───────────────────────────────────────────────────────
 
     @ExceptionHandler(ConflictException.class)

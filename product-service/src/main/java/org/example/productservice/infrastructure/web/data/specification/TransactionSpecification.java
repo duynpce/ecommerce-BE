@@ -17,7 +17,6 @@ public final class TransactionSpecification {
         // READ_SELF: restrict to transactions where the user is either seller or buyer
         if (criteria.userId() != null) {
             criteriaList.add(new Criteria().orOperator(
-                    Criteria.where("contributorId").is(criteria.userId()),
                     Criteria.where("customerId").is(criteria.userId())
             ));
         }
@@ -27,7 +26,7 @@ public final class TransactionSpecification {
         }
 
         if (criteria.productId() != null) {
-            criteriaList.add(Criteria.where("productId").is(criteria.productId()));
+            criteriaList.add(Criteria.where("items.productId").is(criteria.productId()));
         }
 
         if (criteria.status() != null) {
@@ -51,6 +50,4 @@ public final class TransactionSpecification {
         }
         return query;
     }
-
-
 }

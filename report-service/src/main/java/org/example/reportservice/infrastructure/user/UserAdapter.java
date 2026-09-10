@@ -4,8 +4,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.example.reportservice.application.client.UserClient;
 import org.example.reportservice.infrastructure.user.httpclient.UserHttpClient;
-import org.example.reportservice.infrastructure.web.dto.AccountReportFilter;
-import org.example.reportservice.infrastructure.web.dto.AccountReportResponsive;
+import org.example.reportservice.infrastructure.user.dto.AccountReportFilter;
+import org.example.reportservice.infrastructure.user.dto.AccountReportResponsive;
 import org.example.reportservice.infrastructure.web.dto.ResponseDto;
 import org.springframework.stereotype.Component;
 
